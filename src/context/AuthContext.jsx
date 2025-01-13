@@ -1,126 +1,202 @@
-// src/context/AuthContext.jsx
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api/authApi';
 
-// Create the AuthContext
 const AuthContext = createContext({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  error: null,
   login: async () => {},
   register: async () => {},
   logout: () => {},
+  resetPassword: async () => {},
+  updateProfile: async () => {},
+  clearError: () => {},
 });
 
-// AuthProvider component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  // Check authentication on initial load
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      
-      if (token) {
-        try {
-          // Verify the token
-          const userData = await authApi.verifyToken();
-          setUser(userData);
-          setIsAuthenticated(true);
-        } catch (error) {
-          // Token is invalid
-          localStorage.removeItem('token');
-          setUser(null);
-          setIsAuthenticated(false);
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
+  const clearError = useCallback(() => {
+    setError(null);
   }, []);
 
-  // Login method
+  // Setup axios interceptor for token
+  useEffect(() => {
+    const interceptor = authApi.setupInterceptors(() => {
+      // Token expired or invalid
+      logout();
+      navigate('/login');
+    });
+
+    return () => {
+      // Clean up interceptor
+      authApi.removeInterceptor(interceptor);
+    };
+  }, [navigate]);
+
+  // Check authentication status
+  const checkAuth = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const userData = await authApi.verifyToken();
+      setUser(userData);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      localStorage.removeItem('token');
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  const handleAuthError = useCallback((error) => {
+    const message = error.response?.data?.message || 'An error occurred';
+    setError(message);
+    setUser(null);
+    setIsAuthenticated(false);
+    throw error;
+  }, []);
+
   const login = async (credentials) => {
     try {
       setIsLoading(true);
-      const { token, user } = await authApi.login(credentials);
+      clearError();
       
-      // Store token in localStorage
+      const { token, user } = await authApi.login(credentials);
       localStorage.setItem('token', token);
       
-      // Update state
       setUser(user);
       setIsAuthenticated(true);
       
+      // Navigate based on user role
+      switch (user.role) {
+        case 'FARMER':
+          navigate('/farmer/dashboard');
+          break;
+        case 'BUYER':
+          navigate('/buyer/dashboard');
+          break;
+        case 'ADMIN':
+          navigate('/admin/dashboard');
+          break;
+        default:
+          navigate('/');
+      }
+      
       return user;
     } catch (error) {
-      // Clear any existing authentication
-      setUser(null);
-      setIsAuthenticated(false);
-      throw error;
+      return handleAuthError(error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Register method
   const register = async (userData) => {
     try {
       setIsLoading(true);
-      const { token, user } = await authApi.register(userData);
+      clearError();
       
-      // Store token in localStorage
+      const { token, user } = await authApi.register(userData);
       localStorage.setItem('token', token);
       
-      // Update state
       setUser(user);
       setIsAuthenticated(true);
       
+      // Navigate based on user role
+      switch (user.role) {
+        case 'FARMER':
+          navigate('/farmer/dashboard');
+          break;
+        case 'BUYER':
+          navigate('/buyer/dashboard');
+          break;
+        default:
+          navigate('/');
+      }
+      
       return user;
     } catch (error) {
-      // Clear any existing authentication
-      setUser(null);
-      setIsAuthenticated(false);
+      return handleAuthError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    setUser(null);
+    setIsAuthenticated(false);
+    navigate('/login');
+  }, [navigate]);
+
+  const resetPassword = async (email) => {
+    try {
+      setIsLoading(true);
+      clearError();
+      await authApi.resetPassword(email);
+    } catch (error) {
+      setError(error.response?.data?.message || 'Password reset failed');
       throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Logout method
-  const logout = () => {
-    // Remove token from localStorage
-    localStorage.removeItem('token');
-    
-    // Reset state
-    setUser(null);
-    setIsAuthenticated(false);
+  const updateProfile = async (profileData) => {
+    try {
+      setIsLoading(true);
+      clearError();
+      
+      const updatedUser = await authApi.updateProfile(profileData);
+      setUser(updatedUser);
+      
+      return updatedUser;
+    } catch (error) {
+      setError(error.response?.data?.message || 'Profile update failed');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Context value
-  const contextValue = {
+  const value = {
     user,
     isAuthenticated,
     isLoading,
+    error,
     login,
     register,
-    logout
+    logout,
+    resetPassword,
+    updateProfile,
+    clearError,
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Custom hook for using auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

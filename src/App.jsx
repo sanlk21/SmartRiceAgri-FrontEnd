@@ -1,4 +1,4 @@
-
+import React, { Suspense } from 'react';
 import {
   Navigate,
   Route,
@@ -7,19 +7,19 @@ import {
 } from 'react-router-dom';
 
 // Import authentication components
-import Login from '@pages/auth/Login';
-import Register from '@pages/auth/Register';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
 
 // Import protected route component
-import ProtectedRoute from '@components/common/ProtectedRoute';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 // Import dashboard pages
-import AdminDashboard from '@pages/admin/Dashboard';
-import BuyerDashboard from '@pages/buyer/Dashboard';
-import FarmerDashboard from '@pages/farmer/Dashboard';
+import AdminDashboard from './pages/admin/Dashboard';
+import BuyerDashboard from './pages/buyer/Dashboard';
+import FarmerDashboard from './pages/farmer/Dashboard';
 
 // Import context providers
-import { AuthProvider } from '@context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 
 // Loading component
 const Loading = () => (
