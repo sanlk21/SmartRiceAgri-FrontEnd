@@ -7,6 +7,7 @@ import {
 } from 'react-router-dom';
 
 // Import authentication components
+import Layout from '@components/layout/Layout';
 import Login from '@pages/auth/Login';
 import Register from '@pages/auth/Register';
 
@@ -17,6 +18,7 @@ import ProtectedRoute from '@components/common/ProtectedRoute';
 import AdminDashboard from '@pages/admin/Dashboard';
 import BuyerDashboard from '@pages/buyer/Dashboard';
 import FarmerDashboard from '@pages/farmer/Dashboard';
+import Weather from '@pages/farmer/Weather';
 
 // Import context providers
 import { AuthProvider } from '@context/AuthContext';
@@ -38,17 +40,29 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Protected Routes */}
+            {/* Farmer Routes */}
             <Route element={<ProtectedRoute allowedRoles={['FARMER']} />}>
-              <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
+              <Route element={<Layout />}>
+                <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
+                <Route path="/farmer/weather" element={<Weather />} />
+                {/* Add other farmer routes */}
+              </Route>
             </Route>
 
+            {/* Buyer Routes */}
             <Route element={<ProtectedRoute allowedRoles={['BUYER']} />}>
-              <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+              <Route element={<Layout />}>
+                <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+                {/* Add other buyer routes */}
+              </Route>
             </Route>
 
+            {/* Admin Routes */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route element={<Layout />}>
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                {/* Add other admin routes */}
+              </Route>
             </Route>
 
             {/* Redirect */}
