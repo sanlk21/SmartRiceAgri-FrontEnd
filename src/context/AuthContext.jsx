@@ -26,19 +26,23 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   }, []);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    setUser(null);
+    setIsAuthenticated(false);
+    navigate('/login');
+  }, [navigate]);
+
   // Setup axios interceptor for token
   useEffect(() => {
-    const interceptor = authApi.setupInterceptors(() => {
-      // Token expired or invalid
-      logout();
-      navigate('/login');
-    });
+    const interceptor = authApi.setupInterceptors(logout);
 
     return () => {
-      // Clean up interceptor
-      authApi.removeInterceptor(interceptor);
+      if (interceptor !== undefined) {
+        authApi.removeInterceptor(interceptor);
+      }
     };
-  }, [navigate]);
+  }, [logout]);
 
   // Check authentication status
   const checkAuth = useCallback(async () => {
@@ -139,13 +143,6 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
-
-  const logout = useCallback(() => {
-    localStorage.removeItem('token');
-    setUser(null);
-    setIsAuthenticated(false);
-    navigate('/login');
-  }, [navigate]);
 
   const resetPassword = async (email) => {
     try {

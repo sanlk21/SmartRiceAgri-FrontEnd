@@ -1,9 +1,10 @@
+/* Import your variables */
+@import './variables.css';
+
+/* Include Tailwind directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import your variables */
-@import './variables.css';
 
 /* Add custom styles here */
 @layer base {

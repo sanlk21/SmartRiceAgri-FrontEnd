@@ -1,11 +1,52 @@
-// src/api/authApi.jsx
-import axios from './axios';
+import axios from 'axios';
+
+// Create axios instance with custom config
+const axiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add token to requests if it exists
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export const authApi = {
+  // Setup axios interceptors for handling token expiration
+  setupInterceptors: (onUnauthorized) => {
+    const interceptor = axiosInstance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          // Call the callback for unauthorized requests
+          onUnauthorized();
+        }
+        return Promise.reject(error);
+      }
+    );
+    return interceptor;
+  },
+
+  // Remove interceptor
+  removeInterceptor: (interceptor) => {
+    axiosInstance.interceptors.response.eject(interceptor);
+  },
+
   // Login user
   login: async (credentials) => {
     try {
-      const response = await axios.post('/auth/login', credentials);
+      const response = await axiosInstance.post('/auth/login', credentials);
       return response.data;
     } catch (error) {
       throw error;
@@ -15,7 +56,7 @@ export const authApi = {
   // Register user
   register: async (userData) => {
     try {
-      const response = await axios.post('/auth/register', userData);
+      const response = await axiosInstance.post('/auth/register', userData);
       return response.data;
     } catch (error) {
       throw error;
@@ -25,40 +66,30 @@ export const authApi = {
   // Verify token
   verifyToken: async () => {
     try {
-      const response = await axios.get('/auth/verify');
+      const response = await axiosInstance.get('/auth/verify');
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Logout (optional - might be handled client-side)
-  logout: () => {
-    localStorage.removeItem('token');
+  // Update profile
+  updateProfile: async (profileData) => {
+    try {
+      const response = await axiosInstance.put('/auth/profile', profileData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
   // Password reset request
-  forgotPassword: async (email) => {
+  resetPassword: async (email) => {
     try {
-      const response = await axios.post('/auth/forgot-password', { email });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Reset password
-  resetPassword: async (token, newPassword) => {
-    try {
-      const response = await axios.post('/auth/reset-password', { 
-        token, 
-        newPassword 
-      });
+      const response = await axiosInstance.post('/auth/reset-password', { email });
       return response.data;
     } catch (error) {
       throw error;
     }
   }
 };
-
-export default authApi;
