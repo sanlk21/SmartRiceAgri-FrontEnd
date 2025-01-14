@@ -19,6 +19,12 @@ export default defineConfig({
       '@utils': path.resolve(__dirname, './src/utils'),
       '@assets': path.resolve(__dirname, './src/assets'),
     },
+    // Add the following configuration
+    extensions: ['.js', '.jsx', '.json'],
+    loader: {
+      '.js': 'jsx',
+      '.jsx': 'jsx',
+    },
   },
   server: {
     port: 5173,
