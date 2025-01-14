@@ -1,21 +1,9 @@
-import { AlertCircle, Cloud, Droplets, Wind } from 'lucide-react';
-import React from 'react';
+// src/components/farmer/WeatherAlert.jsx
+import { getAlertIcon } from '@/utils/weatherUtils';
+import PropTypes from 'prop-types';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
-const getAlertIcon = (type) => {
-  switch (type) {
-    case 'RAIN':
-      return <Droplets className="h-4 w-4" />;
-    case 'WIND':
-      return <Wind className="h-4 w-4" />;
-    case 'STORM':
-      return <Cloud className="h-4 w-4" />;
-    default:
-      return <AlertCircle className="h-4 w-4" />;
-  }
-};
-
-const WeatherAlert = ({ alerts }) => {
+const WeatherAlert = ({ alerts = [] }) => {
   if (!alerts || alerts.length === 0) return null;
 
   return (
@@ -27,12 +15,25 @@ const WeatherAlert = ({ alerts }) => {
           className="flex items-center"
         >
           {getAlertIcon(alert.type)}
-          <AlertTitle>{alert.title}</AlertTitle>
-          <AlertDescription>{alert.description}</AlertDescription>
+          <div className="ml-3">
+            <AlertTitle>{alert.title}</AlertTitle>
+            <AlertDescription>{alert.description}</AlertDescription>
+          </div>
         </Alert>
       ))}
     </div>
   );
+};
+
+WeatherAlert.propTypes = {
+  alerts: PropTypes.arrayOf(
+    PropTypes.shape({
+      type: PropTypes.string,
+      severity: PropTypes.string,
+      title: PropTypes.string.isRequired,
+      description: PropTypes.string.isRequired
+    })
+  )
 };
 
 export default WeatherAlert;

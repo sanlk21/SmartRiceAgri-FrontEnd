@@ -1,5 +1,4 @@
 import { Card } from '@/components/ui/card';
-import React from 'react';
 import WeatherAlert from '../../components/farmer/WeatherAlert';
 import WeatherDashboard from '../../components/farmer/WeatherDashboard';
 import { useWeather } from '../../hooks/useWeather';

@@ -1,15 +1,18 @@
 import { useAuth } from '@/context/AuthContext';
 import {
-    BarChart,
-    Cloud,
-    Home,
-    Settings,
-    ShoppingCart,
-    Users,
-    Warehouse
+  BarChart,
+  Cloud,
+  Home,
+  Package,
+  Settings,
+  ShoppingCart,
+  Users,
+  Warehouse
 } from 'lucide-react';
-import React from 'react';
 import { NavLink } from 'react-router-dom';
+
+// Removed React import as it's not needed with modern JSX transform
+// Removed Leaf icon as it's not being used
 
 const Sidebar = () => {
   const { user } = useAuth();
@@ -17,23 +20,24 @@ const Sidebar = () => {
   const getFarmerLinks = () => [
     { to: '/farmer/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/farmer/weather', icon: Cloud, label: 'Weather' },
-    { to: '/farmer/crops', icon: Warehouse, label: 'My Crops' },
+    { to: '/farmer/fertilizer', icon: Package, label: 'Fertilizer Quota' },
     { to: '/farmer/bids', icon: ShoppingCart, label: 'Active Bids' },
-    { to: '/farmer/analytics', icon: BarChart, label: 'Analytics' },
+    { to: '/farmer/analytics', icon: BarChart, label: 'Analytics' }
   ];
 
   const getBuyerLinks = () => [
     { to: '/buyer/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/buyer/marketplace', icon: ShoppingCart, label: 'Marketplace' },
     { to: '/buyer/orders', icon: Warehouse, label: 'My Orders' },
-    { to: '/buyer/analytics', icon: BarChart, label: 'Analytics' },
+    { to: '/buyer/analytics', icon: BarChart, label: 'Analytics' }
   ];
 
   const getAdminLinks = () => [
     { to: '/admin/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/admin/fertilizer', icon: Package, label: 'Fertilizer Management' },
     { to: '/admin/users', icon: Users, label: 'Users' },
     { to: '/admin/analytics', icon: BarChart, label: 'Analytics' },
-    { to: '/admin/settings', icon: Settings, label: 'Settings' },
+    { to: '/admin/settings', icon: Settings, label: 'Settings' }
   ];
 
   const getLinks = () => {
