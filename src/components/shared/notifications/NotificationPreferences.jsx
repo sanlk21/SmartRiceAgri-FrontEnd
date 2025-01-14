@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Toggle } from '@/components/ui/toggle';
 import PropTypes from 'prop-types';
-//import React, { useState } from 'react'; // Added useState import
+import { useState } from 'react'; // Added useState import
 
 const NotificationPreferences = ({ initialPreferences, onPreferencesChange }) => {
     const [preferences, setPreferences] = useState(initialPreferences);
