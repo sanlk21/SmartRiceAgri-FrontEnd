@@ -45,51 +45,31 @@ export const authApi = {
 
   // Login user
   login: async (credentials) => {
-    try {
-      const response = await axiosInstance.post('/auth/login', credentials);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosInstance.post('/users/login', credentials);
+    return response.data;
   },
 
   // Register user
   register: async (userData) => {
-    try {
-      const response = await axiosInstance.post('/auth/register', userData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosInstance.post('/users/register', userData);
+    return response.data;
   },
 
   // Verify token
   verifyToken: async () => {
-    try {
-      const response = await axiosInstance.get('/auth/verify');
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosInstance.get('/auth/verify');
+    return response.data;
   },
 
   // Update profile
   updateProfile: async (profileData) => {
-    try {
-      const response = await axiosInstance.put('/auth/profile', profileData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosInstance.put('/auth/profile', profileData);
+    return response.data;
   },
 
   // Password reset request
   resetPassword: async (email) => {
-    try {
-      const response = await axiosInstance.post('/auth/reset-password', { email });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  }
+    const response = await axiosInstance.post('/auth/reset-password', { email });
+    return response.data;
+  },
 };
