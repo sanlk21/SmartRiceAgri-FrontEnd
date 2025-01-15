@@ -1,5 +1,5 @@
 // src/pages/auth/Login.jsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -146,8 +146,8 @@ const Login = () => {
         </form>
         <div className="text-center">
           <p className="mt-2 text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link 
+          Don&apos;t have an account?{' '}
+          <Link 
               to="/register" 
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
