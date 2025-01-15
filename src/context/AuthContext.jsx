@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api/authApi';
 
@@ -15,7 +16,7 @@ const AuthContext = createContext({
   clearError: () => {},
 });
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children = null }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -194,6 +195,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+AuthProvider.propTypes = {
+  children: PropTypes.node
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -201,3 +206,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthContext;
