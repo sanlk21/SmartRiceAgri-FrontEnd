@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import React from 'react';
+import PropTypes from 'prop-types';
+//import React from 'react';
 
-const AllocationList = ({ allocations, onPageChange, currentPage }) => {
+const AllocationList = ({ allocations = [], onPageChange = () => {}, currentPage = 0 }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'PENDING':
@@ -62,8 +63,8 @@ const AllocationList = ({ allocations, onPageChange, currentPage }) => {
                     {allocation.season} {allocation.year}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {allocation.distributionDate ?// continuation of AllocationList.jsx
-                    format(new Date(allocation.distributionDate), 'MMM dd, yyyy') : 'Not Set'}
+                    {allocation.distributionDate ? 
+                      format(new Date(allocation.distributionDate), 'MMM dd, yyyy') : 'Not Set'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {allocation.distributionLocation}
@@ -100,6 +101,23 @@ const AllocationList = ({ allocations, onPageChange, currentPage }) => {
       </CardContent>
     </Card>
   );
+};
+
+AllocationList.propTypes = {
+  allocations: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      farmerNic: PropTypes.string.isRequired,
+      allocatedAmount: PropTypes.number.isRequired,
+      season: PropTypes.string.isRequired,
+      year: PropTypes.number.isRequired,
+      distributionDate: PropTypes.string,
+      distributionLocation: PropTypes.string,
+      status: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onPageChange: PropTypes.func.isRequired,
+  currentPage: PropTypes.number.isRequired,
 };
 
 export default AllocationList;
