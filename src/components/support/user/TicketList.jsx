@@ -1,7 +1,7 @@
 // src/components/support/user/TicketList.jsx
 //import React from 'react';
 import PropTypes from 'prop-types';
-import { TicketCard } from './TicketCard';
+import TicketCard from './TicketCard';
 
 export const TicketList = ({ tickets }) => {
     return (

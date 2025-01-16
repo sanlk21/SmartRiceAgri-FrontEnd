@@ -1,5 +1,5 @@
 // src/api/supportApi.js
-import axios from '@/lib/axios';
+import axios from '@/api/axios';
 
 export const supportApi = {
     // Create a new support ticket

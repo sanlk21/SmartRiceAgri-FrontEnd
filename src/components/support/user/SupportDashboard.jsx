@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { useSupport } from '@/hooks/useSupport';
 import { useState } from 'react';
-import { CreateTicketForm } from './CreateTicketForm';
+import CreateTicketForm from './CreateTicketForm';
 import { TicketList } from './TicketList';
 
 export const SupportDashboard = () => {

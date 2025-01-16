@@ -24,6 +24,9 @@ import Weather from '@pages/farmer/Weather';
 import OrderRoutes from '@pages/orders';
 import PaymentRoutes from '@pages/payments';
 
+// Import Support Pages
+import { AdminSupportPage, UserSupportPage } from '@pages/support';
+
 // Import context providers
 import { AuthProvider } from '@context/AuthContext';
 import { OrderProvider } from '@context/OrderContext';
@@ -55,6 +58,7 @@ function App() {
                     <Route path="/farmer/weather" element={<Weather />} />
                     <Route path="/farmer/orders/*" element={<OrderRoutes />} />
                     <Route path="/farmer/payments/*" element={<PaymentRoutes />} />
+                    <Route path="/farmer/support" element={<UserSupportPage />} />
                   </Route>
                 </Route>
 
@@ -64,6 +68,7 @@ function App() {
                     <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
                     <Route path="/buyer/orders/*" element={<OrderRoutes />} />
                     <Route path="/buyer/payments/*" element={<PaymentRoutes />} />
+                    <Route path="/buyer/support" element={<UserSupportPage />} />
                   </Route>
                 </Route>
 
@@ -73,6 +78,7 @@ function App() {
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/orders/*" element={<OrderRoutes />} />
                     <Route path="/admin/payments/*" element={<PaymentRoutes />} />
+                    <Route path="/admin/support" element={<AdminSupportPage />} />
                   </Route>
                 </Route>
 
@@ -81,6 +87,13 @@ function App() {
                   <Route element={<Layout />}>
                     <Route path="/orders/*" element={<OrderRoutes />} />
                     <Route path="/payments/*" element={<PaymentRoutes />} />
+                  </Route>
+                </Route>
+
+                {/* Global Support Route */}
+                <Route element={<ProtectedRoute allowedRoles={['FARMER', 'BUYER']} />}>
+                  <Route element={<Layout />}>
+                    <Route path="/support" element={<UserSupportPage />} />
                   </Route>
                 </Route>
 

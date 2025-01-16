@@ -4,6 +4,7 @@ import {
   Cloud,
   CreditCard,
   FileText,
+  HelpCircle,
   Home,
   Package,
   Settings,
@@ -24,7 +25,8 @@ const Sidebar = () => {
     { to: '/farmer/bids', icon: ShoppingCart, label: 'Active Bids' },
     { to: '/farmer/orders', icon: FileText, label: 'Orders' },
     { to: '/farmer/payments', icon: CreditCard, label: 'Payments' },
-    { to: '/farmer/analytics', icon: BarChart, label: 'Analytics' }
+    { to: '/farmer/analytics', icon: BarChart, label: 'Analytics' },
+    { to: '/farmer/support', icon: HelpCircle, label: 'Support' } // Added Support Link
   ];
 
   const getBuyerLinks = () => [
@@ -32,7 +34,8 @@ const Sidebar = () => {
     { to: '/buyer/marketplace', icon: ShoppingCart, label: 'Marketplace' },
     { to: '/buyer/orders', icon: Warehouse, label: 'My Orders' },
     { to: '/buyer/payments', icon: Wallet, label: 'Payments' },
-    { to: '/buyer/analytics', icon: BarChart, label: 'Analytics' }
+    { to: '/buyer/analytics', icon: BarChart, label: 'Analytics' },
+    { to: '/buyer/support', icon: HelpCircle, label: 'Support' } // Added Support Link
   ];
 
   const getAdminLinks = () => [
@@ -41,6 +44,7 @@ const Sidebar = () => {
     { to: '/admin/orders', icon: FileText, label: 'Orders' },
     { to: '/admin/payments', icon: CreditCard, label: 'Payments' },
     { to: '/admin/users', icon: Users, label: 'Users' },
+    { to: '/admin/support', icon: HelpCircle, label: 'Support Tickets' }, // Added Support Link
     { to: '/admin/analytics', icon: BarChart, label: 'Analytics' },
     { to: '/admin/settings', icon: Settings, label: 'Settings' }
   ];
