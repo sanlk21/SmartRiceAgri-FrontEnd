@@ -2,17 +2,17 @@ import { useAuth } from '@/context/AuthContext';
 import {
   BarChart,
   Cloud,
+  CreditCard,
+  FileText,
   Home,
   Package,
   Settings,
   ShoppingCart,
   Users,
+  Wallet,
   Warehouse
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-
-// Removed React import as it's not needed with modern JSX transform
-// Removed Leaf icon as it's not being used
 
 const Sidebar = () => {
   const { user } = useAuth();
@@ -22,6 +22,8 @@ const Sidebar = () => {
     { to: '/farmer/weather', icon: Cloud, label: 'Weather' },
     { to: '/farmer/fertilizer', icon: Package, label: 'Fertilizer Quota' },
     { to: '/farmer/bids', icon: ShoppingCart, label: 'Active Bids' },
+    { to: '/farmer/orders', icon: FileText, label: 'Orders' },
+    { to: '/farmer/payments', icon: CreditCard, label: 'Payments' },
     { to: '/farmer/analytics', icon: BarChart, label: 'Analytics' }
   ];
 
@@ -29,12 +31,15 @@ const Sidebar = () => {
     { to: '/buyer/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/buyer/marketplace', icon: ShoppingCart, label: 'Marketplace' },
     { to: '/buyer/orders', icon: Warehouse, label: 'My Orders' },
+    { to: '/buyer/payments', icon: Wallet, label: 'Payments' },
     { to: '/buyer/analytics', icon: BarChart, label: 'Analytics' }
   ];
 
   const getAdminLinks = () => [
     { to: '/admin/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/admin/fertilizer', icon: Package, label: 'Fertilizer Management' },
+    { to: '/admin/orders', icon: FileText, label: 'Orders' },
+    { to: '/admin/payments', icon: CreditCard, label: 'Payments' },
     { to: '/admin/users', icon: Users, label: 'Users' },
     { to: '/admin/analytics', icon: BarChart, label: 'Analytics' },
     { to: '/admin/settings', icon: Settings, label: 'Settings' }
