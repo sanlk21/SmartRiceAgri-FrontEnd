@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api/authApi';
 
@@ -19,7 +19,7 @@ const AuthContext = createContext({
 export const AuthProvider = ({ children = null }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -28,71 +28,22 @@ export const AuthProvider = ({ children = null }) => {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('token');
     setUser(null);
     setIsAuthenticated(false);
     navigate('/login');
   }, [navigate]);
-
-  // Setup axios interceptor for token
-  useEffect(() => {
-    const interceptor = authApi.setupInterceptors(logout);
-
-    return () => {
-      if (interceptor !== undefined) {
-        authApi.removeInterceptor(interceptor);
-      }
-    };
-  }, [logout]);
-
-  // Check authentication status
-  const checkAuth = useCallback(async () => {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const userData = await authApi.verifyToken();
-      setUser(userData);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  const handleAuthError = useCallback((error) => {
-    const message = error.response?.data?.message || 'An error occurred';
-    setError(message);
-    setUser(null);
-    setIsAuthenticated(false);
-    throw error;
-  }, []);
 
   const login = async (credentials) => {
     try {
       setIsLoading(true);
       clearError();
       
-      const { token, user } = await authApi.login(credentials);
-      localStorage.setItem('token', token);
-      
-      setUser(user);
+      const userData = await authApi.login(credentials);
+      setUser(userData);
       setIsAuthenticated(true);
       
       // Navigate based on user role
-      switch (user.role) {
+      switch (userData.role) {
         case 'FARMER':
           navigate('/farmer/dashboard');
           break;
@@ -106,9 +57,11 @@ export const AuthProvider = ({ children = null }) => {
           navigate('/');
       }
       
-      return user;
+      return userData;
     } catch (error) {
-      return handleAuthError(error);
+      setError(error.message);
+      setIsAuthenticated(false);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -119,14 +72,12 @@ export const AuthProvider = ({ children = null }) => {
       setIsLoading(true);
       clearError();
       
-      const { token, user } = await authApi.register(userData);
-      localStorage.setItem('token', token);
-      
-      setUser(user);
+      const newUser = await authApi.register(userData);
+      setUser(newUser);
       setIsAuthenticated(true);
       
       // Navigate based on user role
-      switch (user.role) {
+      switch (newUser.role) {
         case 'FARMER':
           navigate('/farmer/dashboard');
           break;
@@ -137,9 +88,11 @@ export const AuthProvider = ({ children = null }) => {
           navigate('/');
       }
       
-      return user;
+      return newUser;
     } catch (error) {
-      return handleAuthError(error);
+      setError(error.message);
+      setIsAuthenticated(false);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -151,7 +104,7 @@ export const AuthProvider = ({ children = null }) => {
       clearError();
       await authApi.resetPassword(email);
     } catch (error) {
-      setError(error.response?.data?.message || 'Password reset failed');
+      setError(error.message);
       throw error;
     } finally {
       setIsLoading(false);
@@ -168,7 +121,7 @@ export const AuthProvider = ({ children = null }) => {
       
       return updatedUser;
     } catch (error) {
-      setError(error.response?.data?.message || 'Profile update failed');
+      setError(error.message);
       throw error;
     } finally {
       setIsLoading(false);

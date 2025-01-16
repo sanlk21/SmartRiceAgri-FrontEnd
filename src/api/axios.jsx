@@ -1,28 +1,13 @@
-// src/api/axios.jsx
 import axios from 'axios';
 
-// Create an axios instance with base configuration
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api',
+  baseURL: 'http://localhost:8080/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-  }
-});
-
-// Request interceptor for adding auth token
-axiosInstance.interceptors.request.use(
-  config => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
   },
-  error => {
-    return Promise.reject(error);
-  }
-);
+  withCredentials: true
+});
 
 // Response interceptor for error handling
 axiosInstance.interceptors.response.use(
@@ -32,8 +17,7 @@ axiosInstance.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
-          // Unauthorized - clear token and redirect to login
-          localStorage.removeItem('token');
+          // Unauthorized - redirect to login
           window.location.href = '/login';
           break;
         case 403:
