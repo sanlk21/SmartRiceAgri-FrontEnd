@@ -20,6 +20,10 @@ import BuyerDashboard from '@pages/buyer/Dashboard';
 import FarmerDashboard from '@pages/farmer/Dashboard';
 import Weather from '@pages/farmer/Weather';
 
+// Import Land Management Pages
+import LandAdministration from '@pages/admin/LandAdministration';
+import LandManagement from '@pages/farmer/LandManagement';
+
 // Import Order and Payment Routes
 import OrderRoutes from '@pages/orders';
 import PaymentRoutes from '@pages/payments';
@@ -56,6 +60,7 @@ function App() {
                   <Route element={<Layout />}>
                     <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
                     <Route path="/farmer/weather" element={<Weather />} />
+                    <Route path="/farmer/lands" element={<LandManagement />} />
                     <Route path="/farmer/orders/*" element={<OrderRoutes />} />
                     <Route path="/farmer/payments/*" element={<PaymentRoutes />} />
                     <Route path="/farmer/support" element={<UserSupportPage />} />
@@ -76,6 +81,7 @@ function App() {
                 <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                   <Route element={<Layout />}>
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/admin/lands" element={<LandAdministration />} />
                     <Route path="/admin/orders/*" element={<OrderRoutes />} />
                     <Route path="/admin/payments/*" element={<PaymentRoutes />} />
                     <Route path="/admin/support" element={<AdminSupportPage />} />

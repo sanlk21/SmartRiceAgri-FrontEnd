@@ -6,6 +6,8 @@ import {
   FileText,
   HelpCircle,
   Home,
+  MapPin // Added for land management
+  ,
   Package,
   Settings,
   ShoppingCart,
@@ -21,12 +23,13 @@ const Sidebar = () => {
   const getFarmerLinks = () => [
     { to: '/farmer/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/farmer/weather', icon: Cloud, label: 'Weather' },
+    { to: '/farmer/lands', icon: MapPin, label: 'Land Management' }, // Added Land Management
     { to: '/farmer/fertilizer', icon: Package, label: 'Fertilizer Quota' },
     { to: '/farmer/bids', icon: ShoppingCart, label: 'Active Bids' },
     { to: '/farmer/orders', icon: FileText, label: 'Orders' },
     { to: '/farmer/payments', icon: CreditCard, label: 'Payments' },
     { to: '/farmer/analytics', icon: BarChart, label: 'Analytics' },
-    { to: '/farmer/support', icon: HelpCircle, label: 'Support' } // Added Support Link
+    { to: '/farmer/support', icon: HelpCircle, label: 'Support' }
   ];
 
   const getBuyerLinks = () => [
@@ -35,16 +38,17 @@ const Sidebar = () => {
     { to: '/buyer/orders', icon: Warehouse, label: 'My Orders' },
     { to: '/buyer/payments', icon: Wallet, label: 'Payments' },
     { to: '/buyer/analytics', icon: BarChart, label: 'Analytics' },
-    { to: '/buyer/support', icon: HelpCircle, label: 'Support' } // Added Support Link
+    { to: '/buyer/support', icon: HelpCircle, label: 'Support' }
   ];
 
   const getAdminLinks = () => [
     { to: '/admin/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/admin/lands', icon: MapPin, label: 'Land Administration' }, // Added Land Administration
     { to: '/admin/fertilizer', icon: Package, label: 'Fertilizer Management' },
     { to: '/admin/orders', icon: FileText, label: 'Orders' },
     { to: '/admin/payments', icon: CreditCard, label: 'Payments' },
     { to: '/admin/users', icon: Users, label: 'Users' },
-    { to: '/admin/support', icon: HelpCircle, label: 'Support Tickets' }, // Added Support Link
+    { to: '/admin/support', icon: HelpCircle, label: 'Support Tickets' },
     { to: '/admin/analytics', icon: BarChart, label: 'Analytics' },
     { to: '/admin/settings', icon: Settings, label: 'Settings' }
   ];
@@ -93,6 +97,20 @@ const Sidebar = () => {
                 </NavLink>
               ))}
             </nav>
+
+            {/* User Info */}
+            <div className="flex-shrink-0 flex bg-gray-700 p-4">
+              <div className="flex items-center">
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-white">
+                    {user?.fullName}
+                  </p>
+                  <p className="text-xs text-gray-300">
+                    {user?.role?.toLowerCase()}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
