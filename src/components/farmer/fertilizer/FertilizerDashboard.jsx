@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 import { Calendar, Package } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 const FarmerFertilizerDashboard = () => {
   const [allocations, setAllocations] = useState([]);
@@ -12,44 +12,45 @@ const FarmerFertilizerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchAllocations();
-  }, []);
-
-  const fetchAllocations = async () => {
+  // Wrap fetchAllocations in useCallback for a stable reference
+  const fetchAllocations = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fertilizerApi.getMyAllocations();
       setAllocations(data);
-      
+
       // Set current allocation (if any)
-      const current = data.find(a => a.status === 'READY');
+      const current = data.find((a) => a.status === 'READY');
       setCurrentAllocation(current || null);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch allocations",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to fetch allocations',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchAllocations(); // Safe to call because fetchAllocations is stable
+  }, [fetchAllocations]);
 
   const handleCollect = async (allocationId) => {
     try {
       await fertilizerApi.updateCollectionStatus(allocationId, 'COLLECTED');
       toast({
-        title: "Success",
-        description: "Fertilizer marked as collected",
-        variant: "success"
+        title: 'Success',
+        description: 'Fertilizer marked as collected',
+        variant: 'success',
       });
-      fetchAllocations();
+      fetchAllocations(); // Refresh allocations after marking as collected
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update collection status",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to update collection status',
+        variant: 'destructive',
       });
     }
   };
@@ -94,7 +95,7 @@ const FarmerFertilizerDashboard = () => {
                 </p>
               </div>
             </div>
-            <Button 
+            <Button
               className="mt-4 w-full"
               onClick={() => handleCollect(currentAllocation.id)}
             >
@@ -114,7 +115,7 @@ const FarmerFertilizerDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="divide-y">
-            {allocations.map(allocation => (
+            {allocations.map((allocation) => (
               <div key={allocation.id} className="py-4 first:pt-0 last:pb-0">
                 <div className="flex justify-between items-start">
                   <div>
@@ -125,13 +126,15 @@ const FarmerFertilizerDashboard = () => {
                       {allocation.allocatedAmount} kg
                     </p>
                   </div>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    allocation.status === 'COLLECTED' 
-                      ? 'bg-green-100 text-green-800'
-                      : allocation.status === 'EXPIRED'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      allocation.status === 'COLLECTED'
+                        ? 'bg-green-100 text-green-800'
+                        : allocation.status === 'EXPIRED'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}
+                  >
                     {allocation.status}
                   </span>
                 </div>

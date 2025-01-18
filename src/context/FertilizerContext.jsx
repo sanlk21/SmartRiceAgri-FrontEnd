@@ -1,8 +1,30 @@
-// src/context/FertilizerContext.js
 import PropTypes from 'prop-types';
 import { createContext, useContext, useReducer } from 'react';
 
-const FertilizerContext = createContext();
+// Create context with initial shape
+const FertilizerContext = createContext({
+  allocations: [],
+  currentAllocation: null,
+  loading: false,
+  error: null,
+  filters: {
+    status: '',
+    season: '',
+    search: ''
+  },
+  pagination: {
+    currentPage: 0,
+    totalPages: 0,
+    totalItems: 0
+  },
+  dispatch: () => null,
+  setLoading: () => null,
+  setError: () => null,
+  setAllocations: () => null,
+  setCurrentAllocation: () => null,
+  updateFilters: () => null,
+  setPagination: () => null
+});
 
 const initialState = {
   allocations: [],
@@ -21,19 +43,29 @@ const initialState = {
   }
 };
 
+// Action types as constants to prevent typos
+const ActionTypes = {
+  SET_LOADING: 'SET_LOADING',
+  SET_ERROR: 'SET_ERROR',
+  SET_ALLOCATIONS: 'SET_ALLOCATIONS',
+  SET_CURRENT_ALLOCATION: 'SET_CURRENT_ALLOCATION',
+  UPDATE_FILTERS: 'UPDATE_FILTERS',
+  SET_PAGINATION: 'SET_PAGINATION'
+};
+
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'SET_LOADING':
+    case ActionTypes.SET_LOADING:
       return { ...state, loading: action.payload };
-    case 'SET_ERROR':
+    case ActionTypes.SET_ERROR:
       return { ...state, error: action.payload };
-    case 'SET_ALLOCATIONS':
+    case ActionTypes.SET_ALLOCATIONS:
       return { ...state, allocations: action.payload };
-    case 'SET_CURRENT_ALLOCATION':
+    case ActionTypes.SET_CURRENT_ALLOCATION:
       return { ...state, currentAllocation: action.payload };
-    case 'UPDATE_FILTERS':
+    case ActionTypes.UPDATE_FILTERS:
       return { ...state, filters: { ...state.filters, ...action.payload } };
-    case 'SET_PAGINATION':
+    case ActionTypes.SET_PAGINATION:
       return { ...state, pagination: action.payload };
     default:
       return state;
@@ -43,33 +75,45 @@ const reducer = (state, action) => {
 export const FertilizerProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const value = {
+  const contextValue = {
     ...state,
     dispatch,
-    setLoading: (loading) => dispatch({ type: 'SET_LOADING', payload: loading }),
-    setError: (error) => dispatch({ type: 'SET_ERROR', payload: error }),
-    setAllocations: (allocations) => dispatch({ type: 'SET_ALLOCATIONS', payload: allocations }),
+    setLoading: (loading) => 
+      dispatch({ type: ActionTypes.SET_LOADING, payload: loading }),
+    setError: (error) => 
+      dispatch({ type: ActionTypes.SET_ERROR, payload: error }),
+    setAllocations: (allocations) => 
+      dispatch({ type: ActionTypes.SET_ALLOCATIONS, payload: allocations }),
     setCurrentAllocation: (allocation) => 
-      dispatch({ type: 'SET_CURRENT_ALLOCATION', payload: allocation }),
-    updateFilters: (filters) => dispatch({ type: 'UPDATE_FILTERS', payload: filters }),
-    setPagination: (pagination) => dispatch({ type: 'SET_PAGINATION', payload: pagination })
+      dispatch({ type: ActionTypes.SET_CURRENT_ALLOCATION, payload: allocation }),
+    updateFilters: (filters) => 
+      dispatch({ type: ActionTypes.UPDATE_FILTERS, payload: filters }),
+    setPagination: (pagination) => 
+      dispatch({ type: ActionTypes.SET_PAGINATION, payload: pagination })
   };
 
   return (
-    <FertilizerContext.Provider value={value}>
+    <FertilizerContext.Provider value={contextValue}>
       {children}
     </FertilizerContext.Provider>
   );
 };
 
+// Define prop types for the provider
 FertilizerProvider.propTypes = {
   children: PropTypes.node.isRequired
 };
 
+// Custom hook with proper error handling
 export const useFertilizer = () => {
   const context = useContext(FertilizerContext);
-  if (!context) {
+  
+  if (context === undefined) {
     throw new Error('useFertilizer must be used within a FertilizerProvider');
   }
+  
   return context;
 };
+
+// Export the context for any components that need direct access
+export default FertilizerContext;

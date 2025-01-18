@@ -24,6 +24,9 @@ import Weather from '@pages/farmer/Weather';
 import LandAdministration from '@pages/admin/LandAdministration';
 import LandManagement from '@pages/farmer/LandManagement';
 
+// Import Fertilizer Routes
+import FertilizerRoutes from '@/routes/fertilizer';
+
 // Import Order and Payment Routes
 import OrderRoutes from '@pages/orders';
 import PaymentRoutes from '@pages/payments';
@@ -33,6 +36,7 @@ import { AdminSupportPage, UserSupportPage } from '@pages/support';
 
 // Import context providers
 import { AuthProvider } from '@context/AuthContext';
+import { FertilizerProvider } from '@context/FertilizerContext';
 import { OrderProvider } from '@context/OrderContext';
 import { PaymentProvider } from '@context/PaymentContext';
 
@@ -49,67 +53,56 @@ function App() {
       <AuthProvider>
         <OrderProvider>
           <PaymentProvider>
-            <Suspense fallback={<Loading />}>
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+            <FertilizerProvider>
+              <Suspense fallback={<Loading />}>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
 
-                {/* Farmer Routes */}
-                <Route element={<ProtectedRoute allowedRoles={['FARMER']} />}>
-                  <Route element={<Layout />}>
-                    <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
-                    <Route path="/farmer/weather" element={<Weather />} />
-                    <Route path="/farmer/lands" element={<LandManagement />} />
-                    <Route path="/farmer/orders/*" element={<OrderRoutes />} />
-                    <Route path="/farmer/payments/*" element={<PaymentRoutes />} />
-                    <Route path="/farmer/support" element={<UserSupportPage />} />
+                  {/* Farmer Routes */}
+                  <Route element={<ProtectedRoute allowedRoles={['FARMER']} />}>
+                    <Route element={<Layout />}>
+                      <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
+                      <Route path="/farmer/weather" element={<Weather />} />
+                      <Route path="/farmer/lands" element={<LandManagement />} />
+                      <Route path="/farmer/fertilizer/*" element={<FertilizerRoutes />} />
+                      <Route path="/farmer/orders/*" element={<OrderRoutes />} />
+                      <Route path="/farmer/payments/*" element={<PaymentRoutes />} />
+                      <Route path="/farmer/support" element={<UserSupportPage />} />
+                    </Route>
                   </Route>
-                </Route>
 
-                {/* Buyer Routes */}
-                <Route element={<ProtectedRoute allowedRoles={['BUYER']} />}>
-                  <Route element={<Layout />}>
-                    <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
-                    <Route path="/buyer/orders/*" element={<OrderRoutes />} />
-                    <Route path="/buyer/payments/*" element={<PaymentRoutes />} />
-                    <Route path="/buyer/support" element={<UserSupportPage />} />
+                  {/* Admin Routes */}
+                  <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                    <Route element={<Layout />}>
+                      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                      <Route path="/admin/lands" element={<LandAdministration />} />
+                      <Route path="/admin/fertilizer/*" element={<FertilizerRoutes />} />
+                      <Route path="/admin/orders/*" element={<OrderRoutes />} />
+                      <Route path="/admin/payments/*" element={<PaymentRoutes />} />
+                      <Route path="/admin/support" element={<AdminSupportPage />} />
+                    </Route>
                   </Route>
-                </Route>
 
-                {/* Admin Routes */}
-                <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-                  <Route element={<Layout />}>
-                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    <Route path="/admin/lands" element={<LandAdministration />} />
-                    <Route path="/admin/orders/*" element={<OrderRoutes />} />
-                    <Route path="/admin/payments/*" element={<PaymentRoutes />} />
-                    <Route path="/admin/support" element={<AdminSupportPage />} />
+                  {/* Buyer Routes */}
+                  <Route element={<ProtectedRoute allowedRoles={['BUYER']} />}>
+                    <Route element={<Layout />}>
+                      <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
+                      <Route path="/buyer/orders/*" element={<OrderRoutes />} />
+                      <Route path="/buyer/payments/*" element={<PaymentRoutes />} />
+                      <Route path="/buyer/support" element={<UserSupportPage />} />
+                    </Route>
                   </Route>
-                </Route>
 
-                {/* Order and Payment Global Routes */}
-                <Route element={<ProtectedRoute allowedRoles={['FARMER', 'BUYER', 'ADMIN']} />}>
-                  <Route element={<Layout />}>
-                    <Route path="/orders/*" element={<OrderRoutes />} />
-                    <Route path="/payments/*" element={<PaymentRoutes />} />
-                  </Route>
-                </Route>
+                  {/* Redirect */}
+                  <Route path="/" element={<Navigate to="/login" replace />} />
 
-                {/* Global Support Route */}
-                <Route element={<ProtectedRoute allowedRoles={['FARMER', 'BUYER']} />}>
-                  <Route element={<Layout />}>
-                    <Route path="/support" element={<UserSupportPage />} />
-                  </Route>
-                </Route>
-
-                {/* Redirect */}
-                <Route path="/" element={<Navigate to="/login" replace />} />
-
-                {/* 404 Not Found */}
-                <Route path="*" element={<Navigate to="/login" replace />} />
-              </Routes>
-            </Suspense>
+                  {/* 404 Not Found */}
+                  <Route path="*" element={<Navigate to="/login" replace />} />
+                </Routes>
+              </Suspense>
+            </FertilizerProvider>
           </PaymentProvider>
         </OrderProvider>
       </AuthProvider>
