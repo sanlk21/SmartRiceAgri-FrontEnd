@@ -1,114 +1,185 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { format } from 'date-fns';
-import { AlertTriangle, Calendar, MapPin, Package } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { AlertTriangle, Calendar, CheckCircle, Package, TrendingUp, Users } from 'lucide-react';
 import PropTypes from 'prop-types';
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
-const QuotaDetails = ({ quota }) => {
-  const getStatusBadgeColor = (status) => {
-    switch (status) {
-      case 'READY':
-        return 'bg-green-100 text-green-800';
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'EXPIRED':
-        return 'bg-red-100 text-red-800';
-      case 'COLLECTED':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+const FertilizerStats = ({ stats = {} }) => {
+  const COLORS = {
+    collected: '#10B981',
+    pending: '#F59E0B',
+    expired: '#EF4444'
   };
 
+  const pieData = [
+    { name: 'Collected', value: stats?.collectedCount || 0, color: COLORS.collected },
+    { name: 'Pending', value: stats?.pendingCount || 0, color: COLORS.pending },
+    { name: 'Expired', value: stats?.expiredCount || 0, color: COLORS.expired }
+  ];
+
+  const calculatePercentage = (value) => {
+    const total = stats?.totalAllocations || 0;
+    return total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+  };
+
+  const progressValue = calculatePercentage(stats?.collectedCount || 0);
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle>Fertilizer Quota Details</CardTitle>
-        <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadgeColor(quota?.status)}`}>
-          {quota?.status || 'PENDING'}
-        </span>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {/* Allocation Amount */}
-          <div className="flex items-start space-x-4">
-            <Package className="h-5 w-5 text-gray-500 mt-1" />
-            <div>
-              <p className="font-medium">Allocated Amount</p>
-              <p className="text-sm text-gray-600">{quota?.allocatedAmount || 0} kg</p>
-            </div>
-          </div>
-
-          {/* Distribution Date */}
-          <div className="flex items-start space-x-4">
-            <Calendar className="h-5 w-5 text-gray-500 mt-1" />
-            <div>
-              <p className="font-medium">Distribution Date</p>
-              <p className="text-sm text-gray-600">
-                {quota?.distributionDate 
-                  ? format(new Date(quota.distributionDate), 'PPP')
-                  : 'Not scheduled'}
-              </p>
-            </div>
-          </div>
-
-          {/* Distribution Location */}
-          <div className="flex items-start space-x-4">
-            <MapPin className="h-5 w-5 text-gray-500 mt-1" />
-            <div>
-              <p className="font-medium">Distribution Location</p>
-              <p className="text-sm text-gray-600">{quota?.distributionLocation || 'Not specified'}</p>
-            </div>
-          </div>
-
-          {/* Reference Number */}
-          <div className="flex items-start space-x-4">
-            <div className="h-5 w-5 flex items-center justify-center">
-              <span className="text-sm font-bold">#</span>
-            </div>
-            <div>
-              <p className="font-medium">Reference Number</p>
-              <p className="text-sm text-gray-600">{quota?.referenceNumber || 'N/A'}</p>
-            </div>
-          </div>
-
-          {/* Expiry Warning */}
-          {quota?.status === 'READY' && quota?.expiryDate && (
-            <div className="mt-4 p-3 bg-yellow-50 rounded-lg flex items-start space-x-3">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-yellow-800">Collection Deadline</p>
-                <p className="text-sm text-yellow-600">
-                  Please collect before {format(new Date(quota.expiryDate), 'PPP')}
+                <p className="text-sm font-medium text-gray-600">Total Allocations</p>
+                <p className="text-2xl font-bold">{stats?.totalAllocations || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats?.totalAmount || 0} kg total
                 </p>
               </div>
+              <Package className="h-8 w-8 text-blue-500" />
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Farmers</p>
+                <p className="text-2xl font-bold">{stats?.activeFarmers || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats?.pendingFarmers || 0} pending
+                </p>
+              </div>
+              <Users className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Collection Rate</p>
+                <p className="text-2xl font-bold">{progressValue}%</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats?.collectedAmount || 0} kg collected
+                </p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Current Season</p>
+                <p className="text-2xl font-bold">{stats?.currentSeason || '-'}</p>
+                <p className="text-xs text-gray-500 mt-1">{stats?.year}</p>
+              </div>
+              <Calendar className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Detailed Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Distribution Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Distribution Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Collection Progress */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Collection Progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div>
+                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <span>Overall Progress</span>
+                  <span>{progressValue}%</span>
+                </div>
+                <Progress value={parseFloat(progressValue)} className="h-2" />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Collected</span>
+                  </div>
+                  <span>{stats?.collectedCount || 0} allocations</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-yellow-500" />
+                    <span>Pending</span>
+                  </div>
+                  <span>{stats?.pendingCount || 0} allocations</span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                    <span>Expired</span>
+                  </div>
+                  <span>{stats?.expiredCount || 0} allocations</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 
-QuotaDetails.propTypes = {
-  quota: PropTypes.shape({
-    status: PropTypes.oneOf(['READY', 'PENDING', 'EXPIRED', 'COLLECTED']),
-    allocatedAmount: PropTypes.number,
-    distributionDate: PropTypes.string,
-    distributionLocation: PropTypes.string,
-    referenceNumber: PropTypes.string,
-    expiryDate: PropTypes.string
+FertilizerStats.propTypes = {
+  stats: PropTypes.shape({
+    totalAllocations: PropTypes.number,
+    totalAmount: PropTypes.number,
+    activeFarmers: PropTypes.number,
+    pendingFarmers: PropTypes.number,
+    currentSeason: PropTypes.string,
+    year: PropTypes.number,
+    collectedCount: PropTypes.number,
+    collectedAmount: PropTypes.number,
+    pendingCount: PropTypes.number,
+    expiredCount: PropTypes.number
   })
 };
 
-QuotaDetails.defaultProps = {
-  quota: {
-    status: 'PENDING',
-    allocatedAmount: 0,
-    distributionDate: null,
-    distributionLocation: '',
-    referenceNumber: '',
-    expiryDate: null
-  }
-};
-
-export default QuotaDetails;
+export default FertilizerStats;

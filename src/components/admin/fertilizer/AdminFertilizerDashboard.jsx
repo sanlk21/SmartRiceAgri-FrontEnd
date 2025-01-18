@@ -1,37 +1,39 @@
-import { adminFertilizerApi } from '@/api/adminFertilizerApi';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent } from '@/components/ui/card';
-import { AlertTriangle, Calendar, Package, Users } from 'lucide-react';
+import { fertilizerApi } from '@/api/fertilizerApi';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
+import { Calendar, Package, TrendingUp, Users } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import AllocationList from './AllocationList';
-import AllocationStats from './AllocationStats';
-import CreateAllocationForm from './CreateAllocationForm';
+import AllocationTable from './AllocationTable';
+import CreateAllocationModal from './CreateAllocationModal';
 
 const AdminFertilizerDashboard = () => {
-  const [allocations, setAllocations] = useState([]);
   const [stats, setStats] = useState(null);
+  const [allocations, setAllocations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(0);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const { toast } = useToast();
 
-  // Memoized fetchData to avoid useEffect dependency warnings
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [allocationsData, statsData] = await Promise.all([
-        adminFertilizerApi.getAllAllocations(page),
-        adminFertilizerApi.getAllocationStats(),
+      const [statsData, allocationsData] = await Promise.all([
+        fertilizerApi.getStatistics(),
+        fertilizerApi.getAllAllocations(currentPage)
       ]);
-      setAllocations(allocationsData);
       setStats(statsData);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
+      setAllocations(allocationsData);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to fetch dashboard data",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [currentPage, toast]);
 
   useEffect(() => {
     fetchData();
@@ -39,11 +41,20 @@ const AdminFertilizerDashboard = () => {
 
   const handleCreateAllocation = async (data) => {
     try {
-      await adminFertilizerApi.createAllocation(data);
-      setShowCreateForm(false);
+      await fertilizerApi.createAllocation(data);
+      toast({
+        title: "Success",
+        description: "Allocation created successfully",
+        variant: "success"
+      });
+      setShowCreateModal(false);
       fetchData();
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create allocation",
+        variant: "destructive"
+      });
     }
   };
 
@@ -57,15 +68,8 @@ const AdminFertilizerDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -82,8 +86,20 @@ const AdminFertilizerDashboard = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Pending Collections</p>
-                <p className="text-2xl font-bold">{stats?.pendingCollections || 0}</p>
+                <p className="text-sm font-medium text-gray-600">Total Amount</p>
+                <p className="text-2xl font-bold">{stats?.totalAmount || 0} kg</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Collected</p>
+                <p className="text-2xl font-bold">{stats?.collectedAmount || 0} kg</p>
               </div>
               <Users className="h-8 w-8 text-yellow-500" />
             </div>
@@ -95,9 +111,9 @@ const AdminFertilizerDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">This Season</p>
-                <p className="text-2xl font-bold">{stats?.currentSeasonAllocations || 0}</p>
+                <p className="text-2xl font-bold">{stats?.currentSeasonAmount || 0} kg</p>
               </div>
-              <Calendar className="h-8 w-8 text-green-500" />
+              <Calendar className="h-8 w-8 text-purple-500" />
             </div>
           </CardContent>
         </Card>
@@ -105,31 +121,34 @@ const AdminFertilizerDashboard = () => {
 
       {/* Create Allocation Button */}
       <div className="flex justify-end">
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-        >
+        <Button onClick={() => setShowCreateModal(true)}>
           Create New Allocation
-        </button>
+        </Button>
       </div>
 
-      {/* Create Allocation Form Modal */}
-      {showCreateForm && (
-        <CreateAllocationForm
+      {/* Allocations Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Allocations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AllocationTable 
+            allocations={allocations} 
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            onRefresh={fetchData}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Create Allocation Modal */}
+      {showCreateModal && (
+        <CreateAllocationModal
+          open={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateAllocation}
-          onClose={() => setShowCreateForm(false)}
         />
       )}
-
-      {/* Allocations List */}
-      <AllocationList
-        allocations={allocations}
-        onPageChange={setPage}
-        currentPage={page}
-      />
-
-      {/* Statistics Charts */}
-      <AllocationStats stats={stats} />
     </div>
   );
 };

@@ -1,14 +1,16 @@
 import { fertilizerApi } from '@/api/fertilizerApi';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
-import { AlertTriangle, CalendarDays, Package } from 'lucide-react';
+import { Calendar, Package } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const FertilizerDashboard = () => {
+const FarmerFertilizerDashboard = () => {
   const [allocations, setAllocations] = useState([]);
+  const [currentAllocation, setCurrentAllocation] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchAllocations();
@@ -17,34 +19,54 @@ const FertilizerDashboard = () => {
   const fetchAllocations = async () => {
     try {
       setLoading(true);
-      const data = await fertilizerApi.getFarmerAllocations();
+      const data = await fertilizerApi.getMyAllocations();
       setAllocations(data);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
+      
+      // Set current allocation (if any)
+      const current = data.find(a => a.status === 'READY');
+      setCurrentAllocation(current || null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch allocations",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return <div className="flex justify-center items-center h-48">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-    </div>;
-  }
+  const handleCollect = async (allocationId) => {
+    try {
+      await fertilizerApi.updateCollectionStatus(allocationId, 'COLLECTED');
+      toast({
+        title: "Success",
+        description: "Fertilizer marked as collected",
+        variant: "success"
+      });
+      fetchAllocations();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update collection status",
+        variant: "destructive"
+      });
+    }
+  };
 
-  if (error) {
-    return <Alert variant="destructive">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertDescription>{error}</AlertDescription>
-    </Alert>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-48">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       {/* Current Allocation */}
-      {allocations.filter(a => a.status === 'READY').map(allocation => (
-        <Card key={allocation.id} className="bg-white">
+      {currentAllocation && (
+        <Card className="bg-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
@@ -55,32 +77,38 @@ const FertilizerDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-500">Amount Allocated</p>
-                <p className="text-lg font-semibold">{allocation.allocatedAmount} kg</p>
+                <p className="text-lg font-semibold">{currentAllocation.allocatedAmount} kg</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Distribution Location</p>
-                <p className="text-lg font-semibold">{allocation.distributionLocation}</p>
+                <p className="text-lg font-semibold">{currentAllocation.distributionLocation}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Reference Number</p>
-                <p className="text-lg font-semibold">{allocation.referenceNumber}</p>
+                <p className="text-lg font-semibold">{currentAllocation.referenceNumber}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Available Until</p>
                 <p className="text-lg font-semibold">
-                  {format(new Date(allocation.distributionDate), 'MMM dd, yyyy')}
+                  {format(new Date(currentAllocation.distributionDate), 'MMM dd, yyyy')}
                 </p>
               </div>
             </div>
+            <Button 
+              className="mt-4 w-full"
+              onClick={() => handleCollect(currentAllocation.id)}
+            >
+              Mark as Collected
+            </Button>
           </CardContent>
         </Card>
-      ))}
+      )}
 
       {/* Allocation History */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" />
+            <Calendar className="h-5 w-5" />
             Recent Allocations
           </CardTitle>
         </CardHeader>
@@ -121,4 +149,4 @@ const FertilizerDashboard = () => {
   );
 };
 
-export default FertilizerDashboard;
+export default FarmerFertilizerDashboard;
