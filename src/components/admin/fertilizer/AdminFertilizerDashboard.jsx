@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Calendar, Package, TrendingUp, Users } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import AllocationTable from './AllocationTable';
-import CreateAllocationModal from './CreateAllocationModal';
+import AllocationList from './AllocationList'; // Changed from AllocationTable to AllocationList
+import CreateAllocationForm from './CreateAllocationForm';
 
 const AdminFertilizerDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -132,7 +132,7 @@ const AdminFertilizerDashboard = () => {
           <CardTitle>Recent Allocations</CardTitle>
         </CardHeader>
         <CardContent>
-          <AllocationTable 
+          <AllocationList 
             allocations={allocations} 
             currentPage={currentPage}
             onPageChange={setCurrentPage}
@@ -143,7 +143,7 @@ const AdminFertilizerDashboard = () => {
 
       {/* Create Allocation Modal */}
       {showCreateModal && (
-        <CreateAllocationModal
+        <CreateAllocationForm
           open={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateAllocation}

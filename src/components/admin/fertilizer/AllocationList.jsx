@@ -1,10 +1,25 @@
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Search } from 'lucide-react';
 import PropTypes from 'prop-types';
-//import React from 'react';
+import { useState } from 'react';
 
-const AllocationList = ({ allocations = [], onPageChange = () => {}, currentPage = 0 }) => {
+const AllocationList = ({ 
+  allocations = [], 
+  onPageChange = () => {}, 
+  currentPage = 0,
+  onFilter,
+  onExport 
+}) => {
+  const [filters, setFilters] = useState({
+    status: '',
+    season: '',
+    search: ''
+  });
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'PENDING':
@@ -20,12 +35,62 @@ const AllocationList = ({ allocations = [], onPageChange = () => {}, currentPage
     }
   };
 
+  const handleFilterChange = (key, value) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    onFilter?.(newFilters);
+  };
+
+  const handleExport = () => {
+    onExport?.(allocations);
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Fertilizer Allocations</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle>Fertilizer Allocations</CardTitle>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
+        {/* Filters */}
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Search farmer or reference..."
+              value={filters.search}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+              className="flex-1"
+            />
+          </div>
+          <Select
+            value={filters.status}
+            onValueChange={(value) => handleFilterChange('status', value)}
+          >
+            <option value="">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="READY">Ready</option>
+            <option value="COLLECTED">Collected</option>
+            <option value="EXPIRED">Expired</option>
+          </Select>
+          <Select
+            value={filters.season}
+            onValueChange={(value) => handleFilterChange('season', value)}
+          >
+            <option value="">All Seasons</option>
+            <option value="MAHA">Maha Season</option>
+            <option value="YALA">Yala Season</option>
+          </Select>
+        </div>
+
+        {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -40,6 +105,9 @@ const AllocationList = ({ allocations = [], onPageChange = () => {}, currentPage
                   Season
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Reference No.
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Distribution Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -52,7 +120,7 @@ const AllocationList = ({ allocations = [], onPageChange = () => {}, currentPage
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {allocations.map((allocation) => (
-                <tr key={allocation.id}>
+                <tr key={allocation.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {allocation.farmerNic}
                   </td>
@@ -63,11 +131,14 @@ const AllocationList = ({ allocations = [], onPageChange = () => {}, currentPage
                     {allocation.season} {allocation.year}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {allocation.referenceNumber || '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {allocation.distributionDate ? 
                       format(new Date(allocation.distributionDate), 'MMM dd, yyyy') : 'Not Set'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {allocation.distributionLocation}
+                    {allocation.distributionLocation || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(allocation.status)}`}>
@@ -81,22 +152,28 @@ const AllocationList = ({ allocations = [], onPageChange = () => {}, currentPage
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
-          <button
+        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 0}
-            className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ChevronLeft className="w-5 h-5 mr-2" />
+            <ChevronLeft className="h-4 w-4 mr-2" />
             Previous
-          </button>
-          <button
+          </Button>
+          <span className="text-sm text-gray-700">
+            Page {currentPage + 1} of {Math.ceil((allocations.length || 0) / 10)}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => onPageChange(currentPage + 1)}
-            className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            disabled={currentPage >= Math.ceil((allocations.length || 0) / 10) - 1}
           >
             Next
-            <ChevronRight className="w-5 h-5 ml-2" />
-          </button>
+            <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -111,13 +188,16 @@ AllocationList.propTypes = {
       allocatedAmount: PropTypes.number.isRequired,
       season: PropTypes.string.isRequired,
       year: PropTypes.number.isRequired,
+      referenceNumber: PropTypes.string,
       distributionDate: PropTypes.string,
       distributionLocation: PropTypes.string,
       status: PropTypes.string.isRequired,
     })
   ).isRequired,
-  onPageChange: PropTypes.func.isRequired,
-  currentPage: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func,
+  currentPage: PropTypes.number,
+  onFilter: PropTypes.func,
+  onExport: PropTypes.func,
 };
 
 export default AllocationList;

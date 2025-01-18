@@ -1,13 +1,13 @@
 import { useAuth } from '@/context/AuthContext';
 import {
   BarChart,
+  ChevronDown,
   Cloud,
   CreditCard,
   FileText,
   HelpCircle,
   Home,
-  MapPin // Added for land management
-  ,
+  MapPin,
   Package,
   Settings,
   ShoppingCart,
@@ -15,21 +15,58 @@ import {
   Wallet,
   Warehouse
 } from 'lucide-react';
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
 const Sidebar = () => {
   const { user } = useAuth();
+  const [expandedMenus, setExpandedMenus] = useState({});
+
+  const toggleMenu = (menuKey) => {
+    setExpandedMenus(prev => ({
+      ...prev,
+      [menuKey]: !prev[menuKey]
+    }));
+  };
 
   const getFarmerLinks = () => [
     { to: '/farmer/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/farmer/weather', icon: Cloud, label: 'Weather' },
-    { to: '/farmer/lands', icon: MapPin, label: 'Land Management' }, // Added Land Management
-    { to: '/farmer/fertilizer', icon: Package, label: 'Fertilizer Quota' },
+    { to: '/farmer/lands', icon: MapPin, label: 'Land Management' },
+    {
+      key: 'fertilizer',
+      icon: Package,
+      label: 'Fertilizer Quota',
+      children: [
+        { to: '/farmer/fertilizer', label: 'Overview' },
+        { to: '/farmer/fertilizer/quota', label: 'Quota Details' }
+      ]
+    },
     { to: '/farmer/bids', icon: ShoppingCart, label: 'Active Bids' },
     { to: '/farmer/orders', icon: FileText, label: 'Orders' },
     { to: '/farmer/payments', icon: CreditCard, label: 'Payments' },
     { to: '/farmer/analytics', icon: BarChart, label: 'Analytics' },
     { to: '/farmer/support', icon: HelpCircle, label: 'Support' }
+  ];
+
+  const getAdminLinks = () => [
+    { to: '/admin/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/admin/lands', icon: MapPin, label: 'Land Administration' },
+    {
+      key: 'fertilizer',
+      icon: Package,
+      label: 'Fertilizer Management',
+      children: [
+        { to: '/admin/fertilizer', label: 'Dashboard' },
+        { to: '/admin/fertilizer/allocations', label: 'Allocations' }
+      ]
+    },
+    { to: '/admin/orders', icon: FileText, label: 'Orders' },
+    { to: '/admin/payments', icon: CreditCard, label: 'Payments' },
+    { to: '/admin/users', icon: Users, label: 'Users' },
+    { to: '/admin/support', icon: HelpCircle, label: 'Support Tickets' },
+    { to: '/admin/analytics', icon: BarChart, label: 'Analytics' },
+    { to: '/admin/settings', icon: Settings, label: 'Settings' }
   ];
 
   const getBuyerLinks = () => [
@@ -39,18 +76,6 @@ const Sidebar = () => {
     { to: '/buyer/payments', icon: Wallet, label: 'Payments' },
     { to: '/buyer/analytics', icon: BarChart, label: 'Analytics' },
     { to: '/buyer/support', icon: HelpCircle, label: 'Support' }
-  ];
-
-  const getAdminLinks = () => [
-    { to: '/admin/dashboard', icon: Home, label: 'Dashboard' },
-    { to: '/admin/lands', icon: MapPin, label: 'Land Administration' }, // Added Land Administration
-    { to: '/admin/fertilizer', icon: Package, label: 'Fertilizer Management' },
-    { to: '/admin/orders', icon: FileText, label: 'Orders' },
-    { to: '/admin/payments', icon: CreditCard, label: 'Payments' },
-    { to: '/admin/users', icon: Users, label: 'Users' },
-    { to: '/admin/support', icon: HelpCircle, label: 'Support Tickets' },
-    { to: '/admin/analytics', icon: BarChart, label: 'Analytics' },
-    { to: '/admin/settings', icon: Settings, label: 'Settings' }
   ];
 
   const getLinks = () => {
@@ -64,6 +89,63 @@ const Sidebar = () => {
       default:
         return [];
     }
+  };
+
+  const renderNavItem = (link) => {
+    if (link.children) {
+      return (
+        <div key={link.key} className="space-y-1">
+          <button
+            onClick={() => toggleMenu(link.key)}
+            className="w-full flex items-center px-2 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-md"
+          >
+            <link.icon className="mr-3 h-6 w-6" />
+            <span className="flex-1 text-left">{link.label}</span>
+            <ChevronDown 
+              className={`h-4 w-4 transform transition-transform ${
+                expandedMenus[link.key] ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+          {expandedMenus[link.key] && (
+            <div className="pl-11 space-y-1">
+              {link.children.map((child) => (
+                <NavLink
+                  key={child.to}
+                  to={child.to}
+                  className={({ isActive }) =>
+                    `block px-2 py-2 text-sm font-medium rounded-md ${
+                      isActive
+                        ? 'bg-gray-900 text-white'
+                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }`
+                  }
+                >
+                  {child.label}
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <NavLink
+        key={link.to}
+        to={link.to}
+        className={({ isActive }) =>
+          `flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+            isActive
+              ? 'bg-gray-900 text-white'
+              : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+          }`
+        }
+      >
+        <link.icon className="mr-3 h-6 w-6" />
+        {link.label}
+      </NavLink>
+    );
   };
 
   return (
@@ -80,22 +162,7 @@ const Sidebar = () => {
           {/* Navigation */}
           <div className="flex-1 flex flex-col overflow-y-auto">
             <nav className="flex-1 px-2 py-4 space-y-1">
-              {getLinks().map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={({ isActive }) =>
-                    `flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                      isActive
-                        ? 'bg-gray-900 text-white'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                    }`
-                  }
-                >
-                  <link.icon className="mr-3 h-6 w-6" />
-                  {link.label}
-                </NavLink>
-              ))}
+              {getLinks().map(renderNavItem)}
             </nav>
 
             {/* User Info */}
