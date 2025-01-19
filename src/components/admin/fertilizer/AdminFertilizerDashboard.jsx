@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Calendar, Package, TrendingUp, Users } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import AllocationList from '../../../components/admin/fertilizer/AllocationList';
-import CreateAllocationForm from '../../../components/admin/fertilizer/CreateAllocationForm';
+import AllocationList from './AllocationList';
+import CreateAllocationForm from './CreateAllocationForm';
 
 const AdminFertilizerDashboard = () => {
   const [stats, setStats] = useState({
