@@ -1,29 +1,35 @@
 import { fertilizerApi } from '@/api/fertilizerApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import AllocationTable from './AllocationTable';
 
 const FarmerFertilizerDashboard = () => {
   const [allocations, setAllocations] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const fetchAllocations = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await fertilizerApi.getMyAllocations();
-      setAllocations(data || []);
-    } catch (error) {
-      console.error("Error fetching allocations:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    const fetchAllocations = async () => {
+      try {
+        setLoading(true);
+        const data = await fertilizerApi.getMyAllocations();
+        setAllocations(data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchAllocations();
-  }, [fetchAllocations]);
+  }, []);
 
   if (loading) {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
   }
 
   if (!allocations.length) {
@@ -31,19 +37,34 @@ const FarmerFertilizerDashboard = () => {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Fertilizer Allocations</h1>
-      {allocations.map((allocation) => (
-        <Card key={allocation.id}>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Farmer Fertilizer Dashboard</h1>
+
+      {/* Allocation Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
           <CardHeader>
-            <CardTitle>{allocation.season} - {allocation.year}</CardTitle>
+            <CardTitle>Total Allocations</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Allocated Amount: {allocation.allocatedAmount} kg</p>
-            <p>Status: {allocation.status}</p>
+            <p className="text-xl font-semibold">{allocations.length}</p>
           </CardContent>
         </Card>
-      ))}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Allocations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xl font-semibold">
+              {allocations.filter((a) => a.status === 'PENDING').length}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Allocation Table */}
+      <AllocationTable allocations={allocations} />
     </div>
   );
 };
