@@ -3,7 +3,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
 
-// Get the directory name of the current module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -19,16 +18,19 @@ export default defineConfig({
       '@utils': path.resolve(__dirname, './src/utils'),
       '@assets': path.resolve(__dirname, './src/assets'),
     },
-    // Add the following configuration
     extensions: ['.js', '.jsx', '.json'],
-    loader: {
-      '.js': 'jsx',
-      '.jsx': 'jsx',
-    },
   },
   server: {
     port: 5173,
     host: true,
     open: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      }
+    }
   },
 });

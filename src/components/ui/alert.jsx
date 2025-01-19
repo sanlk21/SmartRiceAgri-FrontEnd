@@ -1,4 +1,5 @@
-import * as React from "react"
+import PropTypes from "prop-types";
+import * as React from "react";
 
 const Alert = React.forwardRef(({ className, variant = "default", ...props }, ref) => {
   const variantClasses = {
@@ -6,7 +7,7 @@ const Alert = React.forwardRef(({ className, variant = "default", ...props }, re
     destructive: "bg-red-50 border-red-200 text-red-900",
     warning: "bg-yellow-50 border-yellow-200 text-yellow-900",
     info: "bg-blue-50 border-blue-200 text-blue-900",
-  }
+  };
 
   return (
     <div
@@ -15,9 +16,13 @@ const Alert = React.forwardRef(({ className, variant = "default", ...props }, re
       className={`relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-gray-950 ${variantClasses[variant]} ${className}`}
       {...props}
     />
-  )
-})
-Alert.displayName = "Alert"
+  );
+});
+Alert.displayName = "Alert";
+Alert.propTypes = {
+  className: PropTypes.string,
+  variant: PropTypes.oneOf(['default', 'destructive', 'warning', 'info']),
+};
 
 const AlertTitle = React.forwardRef(({ className, ...props }, ref) => (
   <h5
@@ -25,8 +30,11 @@ const AlertTitle = React.forwardRef(({ className, ...props }, ref) => (
     className={`mb-1 font-medium leading-none tracking-tight ${className}`}
     {...props}
   />
-))
-AlertTitle.displayName = "AlertTitle"
+));
+AlertTitle.displayName = "AlertTitle";
+AlertTitle.propTypes = {
+  className: PropTypes.string,
+};
 
 const AlertDescription = React.forwardRef(({ className, ...props }, ref) => (
   <div
@@ -34,7 +42,10 @@ const AlertDescription = React.forwardRef(({ className, ...props }, ref) => (
     className={`text-sm [&_p]:leading-relaxed ${className}`}
     {...props}
   />
-))
-AlertDescription.displayName = "AlertDescription"
+));
+AlertDescription.displayName = "AlertDescription";
+AlertDescription.propTypes = {
+  className: PropTypes.string,
+};
 
-export { Alert, AlertDescription, AlertTitle }
+export { Alert, AlertDescription, AlertTitle };
