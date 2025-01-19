@@ -1,109 +1,46 @@
-import { orderApi } from '@/api/orderApi';
 import PropTypes from 'prop-types';
 import { createContext, useContext, useReducer } from 'react';
+
+const OrderContext = createContext();
 
 const initialState = {
   orders: [],
   loading: false,
   error: null,
-  currentOrder: null,
 };
 
-const actions = {
-  SET_LOADING: 'SET_LOADING',
-  SET_ERROR: 'SET_ERROR',
-  SET_ORDERS: 'SET_ORDERS',
-  SET_CURRENT_ORDER: 'SET_CURRENT_ORDER',
-  UPDATE_ORDER: 'UPDATE_ORDER',
-};
-
-const OrderContext = createContext(null);
-
-const orderReducer = (state, action) => {
+const reducer = (state, action) => {
   switch (action.type) {
-    case actions.SET_LOADING:
+    case 'SET_ORDERS':
+      return { ...state, orders: action.payload, loading: false };
+    case 'SET_LOADING':
       return { ...state, loading: action.payload };
-    case actions.SET_ERROR:
-      return { ...state, error: action.payload };
-    case actions.SET_ORDERS:
-      return { ...state, orders: action.payload };
-    case actions.SET_CURRENT_ORDER:
-      return { ...state, currentOrder: action.payload };
-    case actions.UPDATE_ORDER:
-      return {
-        ...state,
-        orders: state.orders.map((order) =>
-          order.id === action.payload.id ? action.payload : order
-        ),
-        currentOrder: state.currentOrder?.id === action.payload.id 
-          ? action.payload 
-          : state.currentOrder,
-      };
+    case 'SET_ERROR':
+      return { ...state, error: action.payload, loading: false };
     default:
       return state;
   }
 };
 
 export const OrderProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(orderReducer, initialState);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  const fetchOrders = async (role, userNic) => {
-    dispatch({ type: actions.SET_LOADING, payload: true });
+  const fetchOrders = async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      let orders;
-      if (role === 'BUYER') {
-        orders = await orderApi.getBuyerOrders(userNic);
-      } else if (role === 'FARMER') {
-        orders = await orderApi.getFarmerOrders(userNic);
-      } else if (role === 'ADMIN') {
-        orders = await orderApi.getAllOrders();
-      }
-      dispatch({ type: actions.SET_ORDERS, payload: orders });
-      return orders;
+      // Fetch orders logic here
+      const orders = []; // Replace with real API call
+      dispatch({ type: 'SET_ORDERS', payload: orders });
     } catch (error) {
-      dispatch({ type: actions.SET_ERROR, payload: error.message });
-      throw error;
-    } finally {
-      dispatch({ type: actions.SET_LOADING, payload: false });
+      dispatch({ type: 'SET_ERROR', payload: error.message });
     }
   };
 
-  const getOrderDetails = async (orderId) => {
-    dispatch({ type: actions.SET_LOADING, payload: true });
-    try {
-      const order = await orderApi.getOrderDetails(orderId);
-      dispatch({ type: actions.SET_CURRENT_ORDER, payload: order });
-      return order;
-    } catch (error) {
-      dispatch({ type: actions.SET_ERROR, payload: error.message });
-      throw error;
-    } finally {
-      dispatch({ type: actions.SET_LOADING, payload: false });
-    }
-  };
-
-  const updatePayment = async (orderId, paymentDetails) => {
-    dispatch({ type: actions.SET_LOADING, payload: true });
-    try {
-      const updatedOrder = await orderApi.updatePayment(orderId, paymentDetails);
-      dispatch({ type: actions.UPDATE_ORDER, payload: updatedOrder });
-      return updatedOrder;
-    } catch (error) {
-      dispatch({ type: actions.SET_ERROR, payload: error.message });
-      throw error;
-    } finally {
-      dispatch({ type: actions.SET_LOADING, payload: false });
-    }
-  };
-
-  const value = {
-    ...state,
-    fetchOrders,
-    getOrderDetails,
-    updatePayment,
-  };
-
-  return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;
+  return (
+    <OrderContext.Provider value={{ ...state, fetchOrders }}>
+      {children}
+    </OrderContext.Provider>
+  );
 };
 
 OrderProvider.propTypes = {
@@ -117,5 +54,3 @@ export const useOrders = () => {
   }
   return context;
 };
-
-export default OrderContext;
