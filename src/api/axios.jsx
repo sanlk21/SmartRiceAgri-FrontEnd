@@ -1,46 +1,28 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: '/api', // Changed to work with Vite proxy
+  baseURL: '/api', // Ensure this is consistent with your backend
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true
+  withCredentials: false, // Set to false since authentication is removed
 });
-
-// Request interceptor to add auth token
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 // Response interceptor for error handling
 axiosInstance.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     if (error.response) {
       switch (error.response.status) {
-        case 401:
-          localStorage.removeItem('token');
-          window.location.href = '/login';
-          break;
-        case 403:
-          window.location.href = '/unauthorized';
-          break;
         case 500:
           console.error('Server Error:', error.response.data);
           break;
         case 404:
           console.error('API Not Found:', error.config.url);
+          break;
+        default:
+          console.error(`Error: ${error.response.status}`, error.response.data);
           break;
       }
     } else if (error.code === 'ERR_NETWORK') {

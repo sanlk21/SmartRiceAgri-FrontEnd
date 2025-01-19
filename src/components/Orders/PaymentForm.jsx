@@ -2,12 +2,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { useOrders } from '@/context/OrderContext';
+import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 
-const PaymentForm = ({ order, onClose }) => {
+const PaymentForm = ({ order, onClose, onSuccess }) => {
   const { updatePayment } = useOrders();
   const [formData, setFormData] = useState({
     paymentMethod: '',
@@ -31,6 +33,7 @@ const PaymentForm = ({ order, onClose }) => {
 
     try {
       await updatePayment(order.id, formData);
+      onSuccess?.();
       onClose();
     } catch (err) {
       setError(err.message);
@@ -61,7 +64,15 @@ const PaymentForm = ({ order, onClose }) => {
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1">Payment Method</label>
+            <Label>Amount to Pay</Label>
+            <p className="text-2xl font-bold">Rs. {order.totalAmount}</p>
+            <p className="text-sm text-gray-500">
+              Payment Deadline: {format(new Date(order.paymentDeadline), 'PPp')}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Payment Method</Label>
             <Select
               name="paymentMethod"
               value={formData.paymentMethod}
@@ -77,8 +88,8 @@ const PaymentForm = ({ order, onClose }) => {
 
           {formData.paymentMethod === 'BANK_TRANSFER' && (
             <>
-              <div>
-                <label className="block text-sm font-medium mb-1">Bank Name</label>
+              <div className="space-y-2">
+                <Label>Bank Name</Label>
                 <Input
                   name="senderBankName"
                   value={formData.senderBankName}
@@ -86,8 +97,8 @@ const PaymentForm = ({ order, onClose }) => {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Account Number</label>
+              <div className="space-y-2">
+                <Label>Account Number</Label>
                 <Input
                   name="senderAccountNumber"
                   value={formData.senderAccountNumber}
@@ -95,8 +106,8 @@ const PaymentForm = ({ order, onClose }) => {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Account Holder Name</label>
+              <div className="space-y-2">
+                <Label>Account Holder Name</Label>
                 <Input
                   name="senderAccountName"
                   value={formData.senderAccountName}
@@ -104,8 +115,8 @@ const PaymentForm = ({ order, onClose }) => {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Transfer Date</label>
+              <div className="space-y-2">
+                <Label>Transfer Date</Label>
                 <Input
                   type="datetime-local"
                   name="transferDate"
@@ -119,25 +130,33 @@ const PaymentForm = ({ order, onClose }) => {
 
           {formData.paymentMethod === 'ONLINE_PAYMENT' && (
             <>
-              <div>
-                <label className="block text-sm font-medium mb-1">Gateway Name</label>
-                <Input
+              <div className="space-y-2">
+                <Label>Payment Gateway</Label>
+                <Select
                   name="paymentGatewayName"
                   value={formData.paymentGatewayName}
                   onChange={handleChange}
                   required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Transaction ID</label>
-                <Input
-                  name="paymentGatewayTransactionId"
-                  value={formData.paymentGatewayTransactionId}
-                  onChange={handleChange}
-                  required
-                />
+                >
+                  <option value="">Select Gateway</option>
+                  <option value="PAYPAL">PayPal</option>
+                  <option value="STRIPE">Stripe</option>
+                </Select>
               </div>
             </>
+          )}
+
+          {formData.paymentMethod && (
+            <div className="space-y-2">
+              <Label>Payment Reference</Label>
+              <Input
+                name="paymentReference"
+                value={formData.paymentReference}
+                onChange={handleChange}
+                placeholder="Enter payment reference number"
+                required
+              />
+            </div>
           )}
 
           <div className="flex justify-end space-x-4">
@@ -158,9 +177,14 @@ PaymentForm.propTypes = {
   order: PropTypes.shape({
     id: PropTypes.number.isRequired,
     totalAmount: PropTypes.number.isRequired,
-    status: PropTypes.string.isRequired
+    paymentDeadline: PropTypes.string.isRequired,
   }).isRequired,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  onSuccess: PropTypes.func
+};
+
+PaymentForm.defaultProps = {
+  onSuccess: () => {}
 };
 
 export default PaymentForm;

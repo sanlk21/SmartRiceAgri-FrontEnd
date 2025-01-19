@@ -58,6 +58,10 @@ const OrderManagement = () => {
         <PaymentForm
           order={selectedOrder}
           onClose={() => setShowPaymentForm(false)}
+          onSuccess={() => {
+            setShowPaymentForm(false);
+            fetchOrders(user.role, user.nic);
+          }}
         />
       )}
     </div>

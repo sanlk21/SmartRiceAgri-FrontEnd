@@ -1,7 +1,7 @@
+import { orderApi } from '@/api/orderApi';
 import PropTypes from 'prop-types';
 import { createContext, useContext, useReducer } from 'react';
 
-// Initial state for orders
 const initialState = {
   orders: [],
   loading: false,
@@ -9,7 +9,6 @@ const initialState = {
   currentOrder: null,
 };
 
-// Action types
 const actions = {
   SET_LOADING: 'SET_LOADING',
   SET_ERROR: 'SET_ERROR',
@@ -18,10 +17,8 @@ const actions = {
   UPDATE_ORDER: 'UPDATE_ORDER',
 };
 
-// Order context
 const OrderContext = createContext(null);
 
-// Reducer function
 const orderReducer = (state, action) => {
   switch (action.type) {
     case actions.SET_LOADING:
@@ -47,31 +44,34 @@ const orderReducer = (state, action) => {
   }
 };
 
-// Provider component
 export const OrderProvider = ({ children }) => {
   const [state, dispatch] = useReducer(orderReducer, initialState);
 
-  // API functions
-  const createOrder = async (bidId, buyerNic, farmerNic, quantity, pricePerKg) => {
+  const fetchOrders = async (role, userNic) => {
     dispatch({ type: actions.SET_LOADING, payload: true });
     try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          bidId,
-          buyerNic,
-          farmerNic,
-          quantity,
-          pricePerKg,
-        }),
-      });
+      let orders;
+      if (role === 'BUYER') {
+        orders = await orderApi.getBuyerOrders(userNic);
+      } else if (role === 'FARMER') {
+        orders = await orderApi.getFarmerOrders(userNic);
+      } else if (role === 'ADMIN') {
+        orders = await orderApi.getAllOrders();
+      }
+      dispatch({ type: actions.SET_ORDERS, payload: orders });
+      return orders;
+    } catch (error) {
+      dispatch({ type: actions.SET_ERROR, payload: error.message });
+      throw error;
+    } finally {
+      dispatch({ type: actions.SET_LOADING, payload: false });
+    }
+  };
 
-      if (!response.ok) throw new Error('Failed to create order');
-      
-      const order = await response.json();
+  const getOrderDetails = async (orderId) => {
+    dispatch({ type: actions.SET_LOADING, payload: true });
+    try {
+      const order = await orderApi.getOrderDetails(orderId);
       dispatch({ type: actions.SET_CURRENT_ORDER, payload: order });
       return order;
     } catch (error) {
@@ -85,17 +85,7 @@ export const OrderProvider = ({ children }) => {
   const updatePayment = async (orderId, paymentDetails) => {
     dispatch({ type: actions.SET_LOADING, payload: true });
     try {
-      const response = await fetch(`/api/orders/${orderId}/payment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(paymentDetails),
-      });
-
-      if (!response.ok) throw new Error('Failed to update payment');
-      
-      const updatedOrder = await response.json();
+      const updatedOrder = await orderApi.updatePayment(orderId, paymentDetails);
       dispatch({ type: actions.UPDATE_ORDER, payload: updatedOrder });
       return updatedOrder;
     } catch (error) {
@@ -106,28 +96,11 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  const fetchOrders = async (userRole, userNic) => {
-    dispatch({ type: actions.SET_LOADING, payload: true });
-    try {
-      const response = await fetch(`/api/orders/${userRole.toLowerCase()}/${userNic}`);
-      if (!response.ok) throw new Error('Failed to fetch orders');
-      
-      const orders = await response.json();
-      dispatch({ type: actions.SET_ORDERS, payload: orders });
-      return orders;
-    } catch (error) {
-      dispatch({ type: actions.SET_ERROR, payload: error.message });
-      throw error;
-    } finally {
-      dispatch({ type: actions.SET_LOADING, payload: false });
-    }
-  };
-
   const value = {
     ...state,
-    createOrder,
-    updatePayment,
     fetchOrders,
+    getOrderDetails,
+    updatePayment,
   };
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;
@@ -137,7 +110,6 @@ OrderProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-// Custom hook for using order context
 export const useOrders = () => {
   const context = useContext(OrderContext);
   if (!context) {

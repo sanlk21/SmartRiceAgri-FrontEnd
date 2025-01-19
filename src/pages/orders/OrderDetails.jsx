@@ -5,21 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import { useOrders } from '@/context/OrderContext';
 import { format } from 'date-fns';
-import { AlertCircle, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 const OrderDetails = () => {
   const { orderId } = useParams();
   const { user } = useAuth();
-  const { currentOrder, loading, error, fetchOrders } = useOrders();
+  const { currentOrder, loading, error, getOrderDetails } = useOrders();
   const [showPaymentForm, setShowPaymentForm] = useState(false);
 
   useEffect(() => {
     if (orderId) {
-      fetchOrders('ORDER', orderId);
+      getOrderDetails(orderId);
     }
-  }, [orderId, fetchOrders]);
+  }, [orderId, getOrderDetails]);
 
   if (loading) {
     return (
@@ -32,7 +32,6 @@ const OrderDetails = () => {
   if (error) {
     return (
       <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
         <AlertDescription>{error}</AlertDescription>
       </Alert>
     );
@@ -96,6 +95,31 @@ const OrderDetails = () => {
             </div>
           </div>
 
+          {/* Bank Details for Pending Payment */}
+          {currentOrder.status === 'PENDING_PAYMENT' && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-medium mb-2">Bank Details for Payment</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">Bank Name</p>
+                  <p className="font-medium">{currentOrder.farmerBankName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Branch</p>
+                  <p className="font-medium">{currentOrder.farmerBankBranch}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Account Number</p>
+                  <p className="font-medium">{currentOrder.farmerAccountNumber}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Account Holder</p>
+                  <p className="font-medium">{currentOrder.farmerAccountHolderName}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Payment Information */}
           {currentOrder.status === 'PAYMENT_COMPLETED' && (
             <div className="bg-green-50 p-4 rounded-lg">
@@ -141,6 +165,10 @@ const OrderDetails = () => {
         <PaymentForm
           order={currentOrder}
           onClose={() => setShowPaymentForm(false)}
+          onSuccess={() => {
+            setShowPaymentForm(false);
+            getOrderDetails(orderId);
+          }}
         />
       )}
     </div>

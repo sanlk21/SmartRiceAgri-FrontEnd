@@ -1,8 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 
 const OrderList = ({ orders, onPaymentClick, userRole }) => {
+  const navigate = useNavigate();
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'PENDING_PAYMENT':
@@ -33,13 +36,20 @@ const OrderList = ({ orders, onPaymentClick, userRole }) => {
     return `${hours}h ${minutes}m remaining`;
   };
 
+  const handleViewDetails = (orderId) => {
+    navigate(`/orders/${orderId}`);
+  };
+
   return (
     <div className="divide-y">
       {orders.map((order) => (
         <div key={order.id} className="py-4 first:pt-0 last:pb-0">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-medium">Order #{order.orderNumber}</p>
+              <p className="font-medium cursor-pointer hover:text-primary" 
+                 onClick={() => handleViewDetails(order.id)}>
+                Order #{order.orderNumber}
+              </p>
               <p className="text-sm text-gray-500">
                 Quantity: {order.quantity}kg at Rs.{order.pricePerKg}/kg
               </p>
@@ -49,7 +59,7 @@ const OrderList = ({ orders, onPaymentClick, userRole }) => {
               <p className="text-sm text-gray-500">
                 Order Date: {formatDate(order.orderDate)}
               </p>
-              {order.status === 'PENDING_PAYMENT' && (
+              {order.status === 'PENDING_PAYMENT' && order.paymentDeadline && (
                 <p className="text-sm text-red-500">
                   Payment Deadline: {getTimeRemaining(order.paymentDeadline)}
                 </p>
@@ -72,6 +82,13 @@ const OrderList = ({ orders, onPaymentClick, userRole }) => {
                   Make Payment
                 </Button>
               )}
+              <Button
+                onClick={() => handleViewDetails(order.id)}
+                size="sm"
+                variant="ghost"
+              >
+                View Details
+              </Button>
             </div>
           </div>
 
