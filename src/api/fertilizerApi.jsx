@@ -1,5 +1,14 @@
 import axios from 'axios';
 
+const axiosInstance = axios.create({
+  baseURL: 'http://localhost:8080', // Base URL for the backend
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true,
+});
+
 const handleApiError = (error, customMessage) => {
   console.error('API Error:', {
     message: error.message,
@@ -20,7 +29,7 @@ export const fertilizerApi = {
   // Fetch allocations for the farmer
   getMyAllocations: async () => {
     try {
-      const response = await axios.get('/api/fertilizer/my-allocations'); // Directly use axios
+      const response = await axiosInstance.get('/api/fertilizer/my-allocations');
       return response.data;
     } catch (error) {
       handleApiError(error, 'Failed to fetch your allocations');
@@ -30,7 +39,7 @@ export const fertilizerApi = {
   // Fetch allocation history
   getAllocationHistory: async (year, season) => {
     try {
-      const response = await axios.get('/api/fertilizer/history', {
+      const response = await axiosInstance.get('/api/fertilizer/history', {
         params: { year, season },
       });
       return response.data;
@@ -42,7 +51,7 @@ export const fertilizerApi = {
   // Update collection status of an allocation
   updateCollectionStatus: async (allocationId, status) => {
     try {
-      const response = await axios.put(`/api/fertilizer/allocations/${allocationId}/status`, {
+      const response = await axiosInstance.put(`/api/fertilizer/allocations/${allocationId}/status`, {
         status,
       });
       return response.data;

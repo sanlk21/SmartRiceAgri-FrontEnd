@@ -25,20 +25,20 @@ const FarmerFertilizerDashboard = () => {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="text-center text-blue-600">Loading...</div>;
   }
 
   if (error) {
-    return <div className="text-red-500">Error: {error}</div>;
+    return <div className="text-center text-red-500">Error: {error}</div>;
   }
 
   if (!allocations.length) {
-    return <div>No allocations available</div>;
+    return <div className="text-center text-gray-500">No allocations available</div>;
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Farmer Fertilizer Dashboard</h1>
+      <h1 className="text-2xl font-bold text-gray-800">Farmer Fertilizer Dashboard</h1>
 
       {/* Allocation Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
