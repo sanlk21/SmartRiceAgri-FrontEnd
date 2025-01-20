@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-    AlertTriangle,
-    Check,
-    MapPin,
-    Package,
-    User,
-    X
+  AlertTriangle,
+  Check,
+  MapPin,
+  Package,
+  User,
+  X
 } from "lucide-react";
 import PropTypes from "prop-types";
 import { useState } from "react";
@@ -16,7 +16,7 @@ const AdminLandList = ({ lands = [], onStatusUpdate }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'VERIFIED':
+      case 'APPROVED': // Changed from VERIFIED to APPROVED
         return 'bg-green-100 text-green-800';
       case 'REJECTED':
         return 'bg-red-100 text-red-800';
@@ -36,7 +36,7 @@ const AdminLandList = ({ lands = [], onStatusUpdate }) => {
         <div className="flex justify-between items-center">
           <CardTitle>Land Registrations</CardTitle>
           <div className="flex gap-2">
-            {['ALL', 'PENDING', 'VERIFIED', 'REJECTED'].map(status => (
+            {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map(status => ( // Changed VERIFIED to APPROVED
               <Button
                 key={status}
                 variant={selectedStatus === status ? "default" : "outline"}
@@ -90,10 +90,10 @@ const AdminLandList = ({ lands = [], onStatusUpdate }) => {
                         size="sm"
                         variant="outline"
                         className="text-green-600"
-                        onClick={() => onStatusUpdate(land.id, 'VERIFIED')}
+                        onClick={() => onStatusUpdate(land.id, 'APPROVED')} // Changed from VERIFIED to APPROVED
                       >
                         <Check className="h-4 w-4 mr-1" />
-                        Verify
+                        Approve
                       </Button>
                       <Button
                         size="sm"
@@ -144,7 +144,7 @@ AdminLandList.propTypes = {
       location: PropTypes.string.isRequired,
       district: PropTypes.string.isRequired,
       size: PropTypes.number.isRequired,
-      status: PropTypes.oneOf(['PENDING', 'VERIFIED', 'REJECTED']).isRequired,
+      status: PropTypes.oneOf(['PENDING', 'APPROVED', 'REJECTED']).isRequired, // Changed VERIFIED to APPROVED
       documentName: PropTypes.string,
     })
   ).isRequired,

@@ -1,12 +1,13 @@
+// src/api/axios.js
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: '/api', // Ensure this is consistent with your backend
+  baseURL: 'http://localhost:8080/api', // Keep this as is
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: false, // Set to false since authentication is removed
+  withCredentials: false,
 });
 
 // Response interceptor for error handling

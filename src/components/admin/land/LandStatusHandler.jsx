@@ -12,6 +12,7 @@ const LandStatusHandler = ({ land, onStatusChange }) => {
       showVerificationToast(updatedLand);
     } catch (error) {
       console.error("Error updating land status:", error);
+      // Show error toast or handle error appropriately
       throw error;
     }
   };
@@ -26,10 +27,10 @@ const LandStatusHandler = ({ land, onStatusChange }) => {
         size="sm"
         variant="outline"
         className="text-green-600"
-        onClick={() => handleStatusUpdate("VERIFIED")}
+        onClick={() => handleStatusUpdate("APPROVED")} // Changed from VERIFIED to APPROVED
       >
         <Check className="h-4 w-4 mr-1" />
-        Verify
+        Approve
       </Button>
       <Button
         size="sm"
@@ -47,7 +48,7 @@ const LandStatusHandler = ({ land, onStatusChange }) => {
 LandStatusHandler.propTypes = {
   land: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    status: PropTypes.oneOf(["PENDING", "VERIFIED", "REJECTED"]).isRequired,
+    status: PropTypes.oneOf(["PENDING", "APPROVED", "REJECTED"]).isRequired, // Changed VERIFIED to APPROVED
   }).isRequired,
   onStatusChange: PropTypes.func.isRequired,
 };

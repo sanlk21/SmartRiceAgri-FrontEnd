@@ -1,12 +1,12 @@
+// src/components/LandRegistrationForm.jsx
+import { landApi } from "@/api/landApi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { validateLandRequest } from "@/types/landTypes";
-import PropTypes from "prop-types";
 import { useState } from "react";
 
-const LandRegistrationForm = ({ onSubmit }) => {
+const LandRegistrationForm = () => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     size: "",
@@ -17,12 +17,29 @@ const LandRegistrationForm = ({ onSubmit }) => {
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const validateForm = (data) => {
+    const errors = {};
+    if (!data.size || data.size <= 0) {
+      errors.size = "Land size must be greater than 0";
+    }
+    if (!data.location.trim()) {
+      errors.location = "Location is required";
+    }
+    if (!data.district.trim()) {
+      errors.district = "District is required";
+    }
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors
+    };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
 
-    const validation = validateLandRequest(formData);
+    const validation = validateForm(formData);
     if (!validation.isValid) {
       setErrors(validation.errors);
       setLoading(false);
@@ -34,12 +51,13 @@ const LandRegistrationForm = ({ onSubmit }) => {
       formDataToSend.append("size", formData.size);
       formDataToSend.append("location", formData.location);
       formDataToSend.append("district", formData.district);
+      formDataToSend.append("farmerNic", "Test User"); // Replace with actual farmer NIC from auth
 
       if (document) {
         formDataToSend.append("document", document);
       }
 
-      await onSubmit(formDataToSend);
+      const response = await landApi.registerLand(formDataToSend);
 
       setFormData({
         size: "",
@@ -52,10 +70,15 @@ const LandRegistrationForm = ({ onSubmit }) => {
         title: "Success",
         description: "Land registered successfully",
       });
+
+      // Optionally, trigger a refresh of the lands list
+      // if (onSuccess) onSuccess();
+
     } catch (error) {
+      console.error('Error registering land:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to register land",
+        description: error.response?.data?.message || "Failed to register land",
         variant: "destructive",
       });
     } finally {
@@ -136,10 +159,6 @@ const LandRegistrationForm = ({ onSubmit }) => {
       </CardContent>
     </Card>
   );
-};
-
-LandRegistrationForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
 };
 
 export default LandRegistrationForm;
