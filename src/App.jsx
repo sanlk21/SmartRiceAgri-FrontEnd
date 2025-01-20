@@ -25,7 +25,10 @@ import FarmerDashboard from './pages/farmer/Dashboard';
 import LandAdministration from './pages/admin/LandAdministration';
 import LandManagement from './pages/farmer/LandManagement';
 import Weather from './pages/farmer/Weather';
-import { AdminSupportPage, UserSupportPage } from './pages/support';
+
+// Support Pages
+import AdminSupportDashboard from './pages/support/AdminSupportPage';
+import UserSupportPage from './pages/support/UserSupportPage';
 
 // Route Configurations
 import PaymentRoutes from './pages/payments';
@@ -37,6 +40,7 @@ import { AuthProvider } from './context/AuthContext';
 import { FertilizerProvider } from './context/FertilizerContext';
 import { OrderProvider } from './context/OrderContext';
 import { PaymentProvider } from './context/PaymentContext';
+import { SupportProvider } from './context/SupportContext';
 
 // App Providers wrapper component
 const AppProviders = ({ children }) => (
@@ -44,7 +48,9 @@ const AppProviders = ({ children }) => (
     <OrderProvider>
       <PaymentProvider>
         <FertilizerProvider>
-          {children}
+          <SupportProvider>
+            {children}
+          </SupportProvider>
         </FertilizerProvider>
       </PaymentProvider>
     </OrderProvider>
@@ -66,7 +72,7 @@ const routeConfig = {
     { path: "fertilizer/*", element: <FertilizerRoutes /> },
     { path: "orders/*", element: <OrderRoutes /> },
     { path: "payments/*", element: <PaymentRoutes /> },
-    { path: "support", element: <UserSupportPage /> }
+    { path: "support/*", element: <UserSupportPage /> }
   ],
   admin: [
     { path: "dashboard", element: <AdminDashboard /> },
@@ -74,13 +80,13 @@ const routeConfig = {
     { path: "fertilizer/*", element: <FertilizerRoutes /> },
     { path: "orders/*", element: <OrderRoutes /> },
     { path: "payments/*", element: <PaymentRoutes /> },
-    { path: "support", element: <AdminSupportPage /> }
+    { path: "support/*", element: <AdminSupportDashboard /> }
   ],
   buyer: [
     { path: "dashboard", element: <BuyerDashboard /> },
     { path: "orders/*", element: <OrderRoutes /> },
     { path: "payments/*", element: <PaymentRoutes /> },
-    { path: "support", element: <UserSupportPage /> }
+    { path: "support/*", element: <UserSupportPage /> }
   ]
 };
 

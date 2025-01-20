@@ -1,89 +1,68 @@
+// src/components/support/user/CreateTicketForm.jsx
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useSupport } from '@/hooks/useSupport';
-import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { MessageSquare } from 'lucide-react';
+import React, { useState } from 'react';
 
-const CreateTicketForm = ({ onClose }) => {
-    const [formData, setFormData] = useState({
-        subject: '',
-        question: ''
-    });
-    const { createTicket } = useSupport();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+export const CreateTicketForm = ({ onSubmit, loading }) => {
+    const [formData, setFormData] = useState({ subject: '', question: '' });
+    const [error, setError] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(null);
         try {
-            setIsSubmitting(true);
-            await createTicket(formData);
-            onClose();
-        } catch (error) {
-            console.error('Error creating ticket:', error);
-        } finally {
-            setIsSubmitting(false);
+            await onSubmit(formData);
+            setFormData({ subject: '', question: '' });
+        } catch (err) {
+            setError(err.message || 'Failed to create ticket');
         }
-    };
-
-    const handleChange = (field) => (e) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: e.target.value
-        }));
     };
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Create New Support Ticket</CardTitle>
+                <CardTitle>Create Support Ticket</CardTitle>
             </CardHeader>
             <CardContent>
+                {error && (
+                    <Alert variant="destructive" className="mb-4">
+                        {error}
+                    </Alert>
+                )}
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <label htmlFor="subject" className="text-sm font-medium">
-                            Subject
-                        </label>
-                        <Input
-                            id="subject"
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Subject</label>
+                        <input
+                            type="text"
+                            className="w-full p-2 border rounded-md"
                             value={formData.subject}
-                            onChange={handleChange('subject')}
+                            onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                            placeholder="Enter ticket subject"
                             required
                         />
                     </div>
-                    <div className="space-y-2">
-                        <label htmlFor="question" className="text-sm font-medium">
-                            Question
-                        </label>
-                        <Textarea
-                            id="question"
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Question</label>
+                        <textarea
+                            className="w-full p-2 border rounded-md min-h-[100px]"
                             value={formData.question}
-                            onChange={handleChange('question')}
+                            onChange={(e) => setFormData(prev => ({ ...prev, question: e.target.value }))}
+                            placeholder="Describe your issue in detail"
                             required
-                            className="min-h-[100px]"
                         />
                     </div>
-                    <div className="flex justify-end space-x-2">
-                        <Button 
-                            type="button" 
-                            variant="outline" 
-                            onClick={onClose}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? 'Creating...' : 'Create Ticket'}
-                        </Button>
-                    </div>
+                    <Button
+                        type="submit"
+                        disabled={loading || !formData.subject || !formData.question}
+                        className="w-full"
+                    >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Submit Ticket
+                    </Button>
                 </form>
             </CardContent>
         </Card>
     );
 };
-
-CreateTicketForm.propTypes = {
-    onClose: PropTypes.func.isRequired
-};
-
-export default CreateTicketForm;
