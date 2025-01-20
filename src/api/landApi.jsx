@@ -1,84 +1,107 @@
 // src/api/landApi.js
-import axios from './axios';
+import axios from 'axios';
+import axiosInstance from './axios';
 
-const isCancel = (error) => {
-  return error?.name === 'CanceledError' || error?.name === 'AbortError';
-};
+const CACHE_KEY = 'farmer_lands_';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const landApi = {
-  // Get farmer's lands
   getFarmerLands: async (farmerNic, signal) => {
     if (!farmerNic) {
       throw new Error('Farmer NIC is required');
     }
-    
+
     try {
-      console.log('Fetching lands for farmer:', farmerNic);
-      const response = await axios.get(`/lands/farmer/${farmerNic}`, {
+      // Check cache first
+      const cacheKey = `${CACHE_KEY}${farmerNic}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          return data;
+        }
+        sessionStorage.removeItem(cacheKey); // Clear expired cache
+      }
+
+      const response = await axiosInstance.get(`/lands/farmer/${farmerNic}`, {
         signal,
-        timeout: 10000
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
+
+      // Cache the successful response
+      if (response.data) {
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+          data: response.data,
+          timestamp: Date.now()
+        }));
+      }
+
       return response.data;
     } catch (error) {
-      if (isCancel(error)) {
+      if (axios.isCancel(error)) {
         console.log('Request cancelled');
         throw error;
       }
-      console.error('Error fetching farmer lands:', error);
       throw error;
     }
   },
 
-  // Register a new land
   registerLand: async (formData, signal) => {
     try {
-      const response = await axios.post('/lands', formData, {
+      const response = await axiosInstance.post('/lands', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
         signal,
-        timeout: 15000
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log('Upload progress:', percentCompleted);
+        }
       });
+
+      // Clear cache after successful registration
+      const cacheKey = `${CACHE_KEY}${formData.get('farmerNic')}`;
+      sessionStorage.removeItem(cacheKey);
+
       return response.data;
     } catch (error) {
-      if (isCancel(error)) {
+      if (axios.isCancel(error)) {
         console.log('Request cancelled');
         throw error;
       }
-      console.error('Error registering land:', error);
       throw error;
     }
   },
 
-  // Update land status
   updateLandStatus: async (landId, status, signal) => {
     try {
-      const response = await axios.put(`/lands/${landId}/status`, 
+      const response = await axiosInstance.put(`/lands/${landId}/status`, 
         { status },
-        { signal, timeout: 5000 }
+        { signal }
       );
       return response.data;
     } catch (error) {
-      if (isCancel(error)) {
+      if (axios.isCancel(error)) {
         console.log('Request cancelled');
         throw error;
       }
-      console.error('Error updating land status:', error);
       throw error;
     }
   },
 
-  // Get all lands (admin)
   getAllLands: async (signal) => {
     try {
-      const response = await axios.get('/lands', { signal });
+      const response = await axiosInstance.get('/lands', { signal });
       return response.data;
     } catch (error) {
-      if (isCancel(error)) {
+      if (axios.isCancel(error)) {
         console.log('Request cancelled');
         throw error;
       }
-      console.error('Error fetching all lands:', error);
       throw error;
     }
   }

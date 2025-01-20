@@ -7,19 +7,21 @@ import { useAuth } from '@/context/AuthContext';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const LandManagement = () => {
-  const [lands, setLands] = useState([]);
-  const [selectedLand, setSelectedLand] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [lands, setLands] = useState([]); // State to store lands
+  const [selectedLand, setSelectedLand] = useState(null); // State for selected land
+  const [loading, setLoading] = useState(true); // Loading state
+  const [isSubmitting, setIsSubmitting] = useState(false); // State to prevent duplicate submissions
   const { toast } = useToast();
-  const { user } = useAuth();
-  const fetchInProgress = useRef(false);
-  const abortController = useRef(null);
+  const { user } = useAuth(); // Get user data from AuthContext
+  const fetchInProgress = useRef(false); // Ref to track ongoing fetches
+  const abortController = useRef(null); // Ref for AbortController
 
+  // Fetch lands function
   const fetchLands = useCallback(async () => {
     if (!user?.nic || fetchInProgress.current) return;
 
     if (abortController.current) {
-      abortController.current.abort();
+      abortController.current.abort(); // Abort any ongoing fetch
     }
 
     try {
@@ -29,8 +31,8 @@ const LandManagement = () => {
       console.log('Fetching lands for farmer:', user.nic);
       const response = await landApi.getFarmerLands(user.nic, abortController.current.signal);
       console.log('Fetched lands:', response);
-      
-      setLands(response || []);
+
+      setLands(response || []); // Set fetched lands or an empty array
     } catch (error) {
       if (error?.name === 'AbortError' || error?.name === 'CanceledError') {
         console.log('Fetch aborted');
@@ -48,15 +50,17 @@ const LandManagement = () => {
     }
   }, [user?.nic, toast]);
 
+  // Effect to fetch lands on component mount
   useEffect(() => {
     fetchLands();
     return () => {
       if (abortController.current) {
-        abortController.current.abort();
+        abortController.current.abort(); // Abort fetch on unmount
       }
     };
   }, [fetchLands]);
 
+  // Handle land registration
   const handleLandRegistration = async (formData) => {
     if (!user?.nic) {
       toast({
@@ -67,28 +71,30 @@ const LandManagement = () => {
       return;
     }
 
-    const controller = new AbortController();
+    if (isSubmitting) return;
 
     try {
-      formData.append("farmerNic", user.nic);
-      await landApi.registerLand(formData, controller.signal);
+      setIsSubmitting(true);
+      formData.append("farmerNic", user.nic); // Add farmer NIC to form data
+      await landApi.registerLand(formData); // Call API to register land
       toast({
         title: "Success",
         description: "Land registered successfully",
       });
-      await fetchLands();
+      await fetchLands(); // Refresh lands after registration
     } catch (error) {
-      if (!error?.name?.includes('Cancel')) {
-        console.error('Land registration error:', error);
-        toast({
-          title: "Error",
-          description: error?.response?.data?.message || "Failed to register land",
-          variant: "destructive",
-        });
-      }
+      console.error('Land registration error:', error);
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to register land",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  // Display spinner while loading
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -97,17 +103,34 @@ const LandManagement = () => {
     );
   }
 
+  // Display retry message if no lands and fetch failed
+  if (!lands.length && !loading) {
+    return (
+      <div className="flex flex-col justify-center items-center">
+        <p>No lands found or failed to fetch. Try refreshing.</p>
+        <button
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+          onClick={fetchLands}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold mb-6">Land Management</h1>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Section: Form and List */}
         <div className="space-y-6">
           <LandRegistrationForm onSubmit={handleLandRegistration} />
-          <LandList 
-            lands={lands} 
+          <LandList
+            lands={lands}
             onSelect={setSelectedLand}
           />
         </div>
+        {/* Right Section: Selected Land Details */}
         {selectedLand && (
           <FertilizerCalculationDisplay landData={selectedLand} />
         )}
