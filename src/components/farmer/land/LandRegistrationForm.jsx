@@ -1,164 +1,100 @@
-// src/components/LandRegistrationForm.jsx
-import { landApi } from "@/api/landApi";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
+import { landApi } from '@/api/landApi';
+import LandList from '@/components/farmer/land/LandList';
+import LandRegistrationForm from '@/components/farmer/land/LandRegistrationForm';
+import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/AuthContext'; // Import the auth context
+import { useCallback, useEffect, useState } from 'react';
 
-const LandRegistrationForm = () => {
+const LandManagement = () => {
+  const [lands, setLands] = useState([]);
+  const [selectedLand, setSelectedLand] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    size: "",
-    location: "",
-    district: "",
-  });
-  const [errors, setErrors] = useState({});
-  const [document, setDocument] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();  // Get the current user
 
-  const validateForm = (data) => {
-    const errors = {};
-    if (!data.size || data.size <= 0) {
-      errors.size = "Land size must be greater than 0";
-    }
-    if (!data.location.trim()) {
-      errors.location = "Location is required";
-    }
-    if (!data.district.trim()) {
-      errors.district = "District is required";
-    }
-    return {
-      isValid: Object.keys(errors).length === 0,
-      errors
-    };
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrors({});
-
-    const validation = validateForm(formData);
-    if (!validation.isValid) {
-      setErrors(validation.errors);
+  const fetchLands = useCallback(async () => {
+    if (!user?.nic) {
+      console.log('No user NIC available');
       setLoading(false);
       return;
     }
 
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("size", formData.size);
-      formDataToSend.append("location", formData.location);
-      formDataToSend.append("district", formData.district);
-      formDataToSend.append("farmerNic", "Test User"); // Replace with actual farmer NIC from auth
-
-      if (document) {
-        formDataToSend.append("document", document);
-      }
-
-      const response = await landApi.registerLand(formDataToSend);
-
-      setFormData({
-        size: "",
-        location: "",
-        district: "",
-      });
-      setDocument(null);
-
-      toast({
-        title: "Success",
-        description: "Land registered successfully",
-      });
-
-      // Optionally, trigger a refresh of the lands list
-      // if (onSuccess) onSuccess();
-
+      console.log('Fetching lands for farmer:', user.nic);
+      const response = await landApi.getFarmerLands(user.nic);
+      console.log('Fetched lands:', response);
+      setLands(response);
     } catch (error) {
-      console.error('Error registering land:', error);
+      console.error('Error fetching lands:', error);
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to register land",
+        description: "Failed to fetch lands",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
+  }, [toast, user?.nic]);
+
+  useEffect(() => {
+    fetchLands();
+  }, [fetchLands]);
+
+  const handleLandRegistration = async (formData) => {
+    if (!user?.nic) {
+      toast({
+        title: "Error",
+        description: "User not authenticated",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Add the farmer NIC to the form data
+    formData.append("farmerNic", user.nic);
+
+    try {
+      await landApi.registerLand(formData);
+      toast({
+        title: "Success",
+        description: "Land registered successfully",
+      });
+      fetchLands(); // Refresh the land list
+    } catch (error) {
+      console.error('Land registration error:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to register land",
+        variant: "destructive",
+      });
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Register New Land</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Land Size (hectares)</label>
-            <Input
-              type="number"
-              step="0.01"
-              value={formData.size}
-              onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-              required
-              min="0"
-              className={errors.size ? "border-red-500" : ""}
-            />
-            {errors.size && (
-              <p className="text-sm text-red-500 mt-1">{errors.size}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Location</label>
-            <Input
-              value={formData.location}
-              onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
-              }
-              required
-              className={errors.location ? "border-red-500" : ""}
-            />
-            {errors.location && (
-              <p className="text-sm text-red-500 mt-1">{errors.location}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">District</label>
-            <Input
-              value={formData.district}
-              onChange={(e) =>
-                setFormData({ ...formData, district: e.target.value })
-              }
-              required
-              className={errors.district ? "border-red-500" : ""}
-            />
-            {errors.district && (
-              <p className="text-sm text-red-500 mt-1">{errors.district}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Land Document</label>
-            <Input
-              type="file"
-              onChange={(e) => setDocument(e.target.files[0])}
-              accept=".pdf,.jpg,.jpeg,.png"
-              className="mt-1"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Supported formats: PDF, JPG, PNG
-            </p>
-          </div>
-
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Registering..." : "Register Land"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <div className="container mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold mb-6">Land Management</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <LandRegistrationForm onSubmit={handleLandRegistration} />
+          <LandList 
+            lands={lands} 
+            onSelect={setSelectedLand}
+          />
+        </div>
+        {selectedLand && (
+          <FertilizerCalculationDisplay landData={selectedLand} />
+        )}
+      </div>
+    </div>
   );
 };
 
-export default LandRegistrationForm;
+export default LandManagement;

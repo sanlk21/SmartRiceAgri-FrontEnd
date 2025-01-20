@@ -11,7 +11,7 @@ const LandAdministration = () => {
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
-    verified: 0,
+    approved: 0,
     rejected: 0,
   });
   const { toast } = useToast();
@@ -19,13 +19,18 @@ const LandAdministration = () => {
   const fetchLands = useCallback(async () => {
     try {
       const response = await landApi.getAllLands();
-      setLands(response);
-      calculateStats(response);
+      // Convert id to string and calculate stats
+      const transformedLands = response.map((land) => ({
+        ...land,
+        id: String(land.id), // Ensure id is a string
+      }));
+      setLands(transformedLands);
+      calculateStats(transformedLands);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch lands",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to fetch lands',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -35,9 +40,9 @@ const LandAdministration = () => {
   const calculateStats = useCallback((landsData) => {
     const newStats = {
       total: landsData.length,
-      pending: landsData.filter(land => land.status === 'PENDING').length,
-      verified: landsData.filter(land => land.status === 'VERIFIED').length,
-      rejected: landsData.filter(land => land.status === 'REJECTED').length,
+      pending: landsData.filter((land) => land.status === 'PENDING').length,
+      approved: landsData.filter((land) => land.status === 'APPROVED').length,
+      rejected: landsData.filter((land) => land.status === 'REJECTED').length,
     };
     setStats(newStats);
   }, []);
@@ -50,15 +55,15 @@ const LandAdministration = () => {
     try {
       await landApi.updateLandStatus(landId, newStatus);
       toast({
-        title: "Success",
+        title: 'Success',
         description: `Land status updated to ${newStatus}`,
       });
-      fetchLands();
+      fetchLands(); // Refresh the data after update
     } catch (error) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update land status",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to update land status',
+        variant: 'destructive',
       });
     }
   };
@@ -105,8 +110,8 @@ const LandAdministration = () => {
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium text-gray-600">Verified</p>
-                <p className="text-2xl font-bold">{stats.verified}</p>
+                <p className="text-sm font-medium text-gray-600">Approved</p>
+                <p className="text-2xl font-bold">{stats.approved}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
@@ -127,10 +132,7 @@ const LandAdministration = () => {
       </div>
 
       {/* Land List */}
-      <AdminLandList 
-        lands={lands} 
-        onStatusUpdate={handleStatusUpdate} 
-      />
+      <AdminLandList lands={lands} onStatusUpdate={handleStatusUpdate} />
     </div>
   );
 };

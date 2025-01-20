@@ -1,22 +1,15 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  AlertTriangle,
-  Check,
-  MapPin,
-  Package,
-  User,
-  X
-} from "lucide-react";
-import PropTypes from "prop-types";
-import { useState } from "react";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, Check, MapPin, Package, User, X } from 'lucide-react';
+import PropTypes from 'prop-types';
+import { useState } from 'react';
 
 const AdminLandList = ({ lands = [], onStatusUpdate }) => {
   const [selectedStatus, setSelectedStatus] = useState('ALL');
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'APPROVED': // Changed from VERIFIED to APPROVED
+      case 'APPROVED':
         return 'bg-green-100 text-green-800';
       case 'REJECTED':
         return 'bg-red-100 text-red-800';
@@ -26,9 +19,7 @@ const AdminLandList = ({ lands = [], onStatusUpdate }) => {
     }
   };
 
-  const filteredLands = selectedStatus === 'ALL' 
-    ? lands 
-    : lands.filter(land => land.status === selectedStatus);
+  const filteredLands = selectedStatus === 'ALL' ? lands : lands.filter((land) => land.status === selectedStatus);
 
   return (
     <Card>
@@ -36,10 +27,10 @@ const AdminLandList = ({ lands = [], onStatusUpdate }) => {
         <div className="flex justify-between items-center">
           <CardTitle>Land Registrations</CardTitle>
           <div className="flex gap-2">
-            {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map(status => ( // Changed VERIFIED to APPROVED
+            {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map((status) => (
               <Button
                 key={status}
-                variant={selectedStatus === status ? "default" : "outline"}
+                variant={selectedStatus === status ? 'default' : 'outline'}
                 onClick={() => setSelectedStatus(status)}
                 size="sm"
               >
@@ -52,11 +43,7 @@ const AdminLandList = ({ lands = [], onStatusUpdate }) => {
       <CardContent>
         <div className="space-y-4">
           {filteredLands.map((land) => (
-            <article 
-              key={land.id} 
-              className="p-4 border rounded-lg"
-              aria-label={`Land ID ${land.id}`}
-            >
+            <article key={land.id} className="p-4 border rounded-lg" aria-label={`Land ID ${land.id}`}>
               <div className="flex justify-between items-start">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -77,30 +64,17 @@ const AdminLandList = ({ lands = [], onStatusUpdate }) => {
                 </div>
 
                 <div className="flex flex-col items-end gap-2">
-                  <span 
-                    className={`px-2 py-1 text-xs rounded-full ${getStatusColor(land.status)}`}
-                    aria-label={`Status: ${land.status}`}
-                  >
+                  <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(land.status)}`} aria-label={`Status: ${land.status}`}>
                     {land.status}
                   </span>
-                  
+
                   {land.status === 'PENDING' && (
                     <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-green-600"
-                        onClick={() => onStatusUpdate(land.id, 'APPROVED')} // Changed from VERIFIED to APPROVED
-                      >
+                      <Button size="sm" variant="outline" className="text-green-600" onClick={() => onStatusUpdate(land.id, 'APPROVED')}>
                         <Check className="h-4 w-4 mr-1" />
                         Approve
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-red-600"
-                        onClick={() => onStatusUpdate(land.id, 'REJECTED')}
-                      >
+                      <Button size="sm" variant="outline" className="text-red-600" onClick={() => onStatusUpdate(land.id, 'REJECTED')}>
                         <X className="h-4 w-4 mr-1" />
                         Reject
                       </Button>
@@ -111,8 +85,8 @@ const AdminLandList = ({ lands = [], onStatusUpdate }) => {
 
               {land.documentName && (
                 <div className="mt-3 pt-3 border-t">
-                  <a 
-                    href={`/api/lands/${land.id}/document`} 
+                  <a
+                    href={`/api/lands/${land.id}/document`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-blue-600 hover:underline flex items-center gap-1"
@@ -125,11 +99,7 @@ const AdminLandList = ({ lands = [], onStatusUpdate }) => {
             </article>
           ))}
 
-          {filteredLands.length === 0 && (
-            <div className="text-center text-gray-500 py-4">
-              No lands found with the selected status.
-            </div>
-          )}
+          {filteredLands.length === 0 && <div className="text-center text-gray-500 py-4">No lands found with the selected status.</div>}
         </div>
       </CardContent>
     </Card>
@@ -139,12 +109,12 @@ const AdminLandList = ({ lands = [], onStatusUpdate }) => {
 AdminLandList.propTypes = {
   lands: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
+      id: PropTypes.string.isRequired, // id is now always a string
       farmerNic: PropTypes.string.isRequired,
       location: PropTypes.string.isRequired,
       district: PropTypes.string.isRequired,
       size: PropTypes.number.isRequired,
-      status: PropTypes.oneOf(['PENDING', 'APPROVED', 'REJECTED']).isRequired, // Changed VERIFIED to APPROVED
+      status: PropTypes.oneOf(['PENDING', 'APPROVED', 'REJECTED']).isRequired,
       documentName: PropTypes.string,
     })
   ).isRequired,
