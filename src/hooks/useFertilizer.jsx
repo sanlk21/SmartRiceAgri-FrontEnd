@@ -1,38 +1,50 @@
+// src/hooks/useFertilizer.jsx
 import { fertilizerApi } from '@/api/fertilizerApi';
-import { useCallback, useEffect, useState } from 'react';
+import { useFertilizer as useContext } from '@/context/FertilizerContext';
+import { useCallback } from 'react';
 
-const useFertilizer = () => {
-  const [allocations, setAllocations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export const useFertilizer = () => {
+  const context = useContext();
+  const {
+    setLoading,
+    setError,
+    setAllocations,
+    setCurrentQuota,
+  } = context;
 
-  const fetchAllocations = useCallback(async (retryCount = 3) => {
+  const fetchAllocations = useCallback(async (nic) => {
     try {
       setLoading(true);
-      const data = await fertilizerApi.getMyAllocations();
-      console.log("Fetched Allocations:", data);
+      const data = await fertilizerApi.getMyAllocations(nic);
       setAllocations(data);
-    } catch (err) {
-      if (retryCount > 0) {
-        console.warn("Retrying fetchAllocations...");
-        fetchAllocations(retryCount - 1);
-      } else {
-        console.error("Error fetching allocations:", {
-          message: err.message,
-          response: err.response ? err.response.data : null,
-        });
-        setError(err);
-      }
+      return data;
+    } catch (error) {
+      setError(error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
-  }, []); // Empty dependency array ensures the function doesn't change
+  }, [setLoading, setError, setAllocations]);
 
-  useEffect(() => {
-    fetchAllocations(); // Safe to call as its reference won't change
-  }, [fetchAllocations]); // Include fetchAllocations in the dependency array
+  const fetchQuotaDetails = useCallback(async (quotaId) => {
+    try {
+      setLoading(true);
+      const data = await fertilizerApi.getAllocationDetails(quotaId);
+      setCurrentQuota(data);
+      return data;
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setError, setCurrentQuota]);
 
-  return { allocations, loading, error };
+  return {
+    ...context,
+    fetchAllocations,
+    fetchQuotaDetails,
+  };
 };
 
 export default useFertilizer;

@@ -1,72 +1,80 @@
-import { fertilizerApi } from '@/api/fertilizerApi';
+// src/components/farmer/fertilizer/FertilizerDashboard.jsx
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
-import AllocationTable from './AllocationTable';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { useAuth } from '@/hooks/useAuth';
+import { useFertilizer } from '@/hooks/useFertilizer';
+import { Calendar, Package } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import QuotaDetails from './QuotaDetails';
 
-const FarmerFertilizerDashboard = () => {
-  const [allocations, setAllocations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const FertilizerDashboard = () => {
+  const { user } = useAuth();
+  const { allocations, loading, error, fetchAllocations } = useFertilizer();
+  const initialFetchDone = useRef(false);
 
   useEffect(() => {
-    const fetchAllocations = async () => {
-      try {
-        setLoading(true);
-        const data = await fertilizerApi.getMyAllocations();
-        setAllocations(data);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllocations();
-  }, []);
+    if (user?.nic && !initialFetchDone.current) {
+      initialFetchDone.current = true;
+      fetchAllocations(user.nic);
+    }
+  }, [user?.nic, fetchAllocations]);
 
   if (loading) {
-    return <div className="text-center text-blue-600">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-center text-red-500">Error: {error}</div>;
+    return (
+      <Alert variant="destructive" className="m-4">
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
   }
 
-  if (!allocations.length) {
-    return <div className="text-center text-gray-500">No allocations available</div>;
-  }
+  const currentQuota = allocations?.[0] || null;
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Farmer Fertilizer Dashboard</h1>
-
-      {/* Allocation Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-6 p-4">
+      <h1 className="text-2xl font-bold">Fertilizer Dashboard</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>Total Allocations</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Current Allocation
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-semibold">{allocations.length}</p>
+            <p className="text-2xl font-bold">
+              {currentQuota ? `${currentQuota.allocatedAmount} kg` : 'No active quota'}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Pending Allocations</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Season
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-semibold">
-              {allocations.filter((a) => a.status === 'PENDING').length}
+            <p className="text-2xl font-bold">
+              {currentQuota ? `${currentQuota.season} ${currentQuota.year}` : '-'}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Allocation Table */}
-      <AllocationTable allocations={allocations} />
+      {currentQuota && <QuotaDetails quota={currentQuota} />}
     </div>
   );
 };
 
-export default FarmerFertilizerDashboard;
+export default FertilizerDashboard;
