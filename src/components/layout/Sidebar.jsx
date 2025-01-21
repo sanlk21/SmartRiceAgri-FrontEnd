@@ -7,6 +7,7 @@ import {
   FileText,
   HelpCircle,
   Home,
+  LineChart,
   MapPin,
   Package,
   Settings,
@@ -53,6 +54,18 @@ const Sidebar = () => {
     { to: '/admin/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/admin/lands', icon: MapPin, label: 'Land Administration' },
     {
+      key: 'bids',
+      icon: ShoppingCart,
+      label: 'Bid Management',
+      children: [
+        { to: '/admin/bids', label: 'Dashboard' },
+        { to: '/admin/bids/active', label: 'Active Bids' },
+        { to: '/admin/bids/completed', label: 'Completed Bids' },
+        { to: '/admin/bids/analytics', label: 'Analytics' },
+        { to: '/admin/bids/reports', label: 'Reports' }
+      ]
+    },
+    {
       key: 'fertilizer',
       icon: Package,
       label: 'Fertilizer Management',
@@ -65,7 +78,7 @@ const Sidebar = () => {
     { to: '/admin/payments', icon: CreditCard, label: 'Payments' },
     { to: '/admin/users', icon: Users, label: 'Users' },
     { to: '/admin/support', icon: HelpCircle, label: 'Support Tickets' },
-    { to: '/admin/analytics', icon: BarChart, label: 'Analytics' },
+    { to: '/admin/analytics', icon: LineChart, label: 'Analytics' },
     { to: '/admin/settings', icon: Settings, label: 'Settings' }
   ];
 
