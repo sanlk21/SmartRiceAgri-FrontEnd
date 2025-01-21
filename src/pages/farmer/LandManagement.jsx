@@ -40,9 +40,9 @@ const LandManagement = () => {
       }
       console.error('Error fetching lands:', error);
       toast({
-        title: "Error",
-        description: error?.response?.data?.message || "Failed to fetch lands",
-        variant: "destructive",
+        title: 'Error',
+        description: error?.response?.data?.message || 'Failed to fetch lands',
+        variant: 'destructive',
       });
     } finally {
       fetchInProgress.current = false;
@@ -64,9 +64,9 @@ const LandManagement = () => {
   const handleLandRegistration = async (formData) => {
     if (!user?.nic) {
       toast({
-        title: "Error",
-        description: "User not authenticated",
-        variant: "destructive",
+        title: 'Error',
+        description: 'User not authenticated',
+        variant: 'destructive',
       });
       return;
     }
@@ -75,26 +75,25 @@ const LandManagement = () => {
 
     try {
       setIsSubmitting(true);
-      formData.append("farmerNic", user.nic); // Add farmer NIC to form data
+      formData.append('farmerNic', user.nic); // Add farmer NIC to form data
       await landApi.registerLand(formData); // Call API to register land
       toast({
-        title: "Success",
-        description: "Land registered successfully",
+        title: 'Success',
+        description: 'Land registered successfully',
       });
       await fetchLands(); // Refresh lands after registration
     } catch (error) {
       console.error('Land registration error:', error);
       toast({
-        title: "Error",
-        description: error?.response?.data?.message || "Failed to register land",
-        variant: "destructive",
+        title: 'Error',
+        description: error?.response?.data?.message || 'Failed to register land',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Display spinner while loading
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -103,17 +102,13 @@ const LandManagement = () => {
     );
   }
 
-  // Display retry message if no lands and fetch failed
-  if (!lands.length && !loading) {
+  if (!lands.length) {
+    // Render Land Registration Form for new farmers
     return (
-      <div className="flex flex-col justify-center items-center">
-        <p>No lands found or failed to fetch. Try refreshing.</p>
-        <button
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
-          onClick={fetchLands}
-        >
-          Retry
-        </button>
+      <div className="container mx-auto p-6 space-y-6">
+        <h1 className="text-2xl font-bold mb-6">Register Your First Land</h1>
+        <p className="text-gray-700">You have not registered any lands yet. Please fill out the form below to register your first land.</p>
+        <LandRegistrationForm onSubmit={handleLandRegistration} />
       </div>
     );
   }
@@ -125,10 +120,7 @@ const LandManagement = () => {
         {/* Left Section: Form and List */}
         <div className="space-y-6">
           <LandRegistrationForm onSubmit={handleLandRegistration} />
-          <LandList
-            lands={lands}
-            onSelect={setSelectedLand}
-          />
+          <LandList lands={lands} onSelect={setSelectedLand} />
         </div>
         {/* Right Section: Selected Land Details */}
         {selectedLand && (
