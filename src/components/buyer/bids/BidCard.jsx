@@ -1,58 +1,94 @@
-// src/components/buyer/bids/BidCard.jsx
-import BidStatusBadge from '@/components/shared/BidStatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import PropTypes from 'prop-types';
-import React from 'react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const BidCard = ({ bid }) => {
+  const [showBidDialog, setShowBidDialog] = useState(false);
+  const [bidAmount, setBidAmount] = useState('');
+  const navigate = useNavigate();
+
+  const handlePlaceBid = async () => {
+    try {
+      // Implement bid placement logic here
+      setShowBidDialog(false);
+      navigate(`/buyer/bids/${bid.id}`);
+    } catch (error) {
+      console.error('Error placing bid:', error);
+    }
+  };
+
   return (
-    <Card>
+    <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle>{bid.riceVariety} Rice</CardTitle>
-          <BidStatusBadge status={bid.status} />
-        </div>
+        <CardTitle className="flex justify-between items-center">
+          <span>{bid.riceVariety} Rice</span>
+          <span className="text-green-600">Rs. {bid.minimumPrice}/kg</span>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Quantity</p>
+            <p className="text-sm text-gray-500">Quantity Available</p>
             <p className="font-medium">{bid.quantity} kg</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Price per kg</p>
-            <p className="font-medium">Rs. {bid.pricePerKg}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Location</p>
             <p className="font-medium">{bid.location}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Posted Date</p>
-            <p className="font-medium">
-              {new Date(bid.createdAt).toLocaleDateString()}
-            </p>
+            <p className="text-sm text-gray-500">Harvest Date</p>
+            <p className="font-medium">{new Date(bid.harvestDate).toLocaleDateString()}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Grade</p>
+            <p className="font-medium">{bid.grade}</p>
           </div>
         </div>
-        <div className="mt-4 flex justify-end">
-          <Button>Place Bid</Button>
+
+        <div className="mt-4 flex justify-end space-x-2">
+          <Button variant="outline" onClick={() => navigate(`/buyer/bids/${bid.id}`)}>
+            View Details
+          </Button>
+          <Button onClick={() => setShowBidDialog(true)}>
+            Place Bid
+          </Button>
         </div>
+
+        {showBidDialog && (
+          <Dialog open={showBidDialog} onOpenChange={setShowBidDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Place Bid</DialogTitle>
+              </DialogHeader>
+              <div className="py-4">
+                <Input
+                  type="number"
+                  placeholder="Enter bid amount"
+                  value={bidAmount}
+                  onChange={(e) => setBidAmount(e.target.value)}
+                  min={bid.minimumPrice}
+                />
+                <p className="text-sm text-gray-500 mt-2">
+                  Minimum bid is Rs. {bid.minimumPrice}/kg
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowBidDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handlePlaceBid}>
+                  Place Bid
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </CardContent>
     </Card>
   );
-};
-
-BidCard.propTypes = {
-  bid: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    riceVariety: PropTypes.string.isRequired,
-    quantity: PropTypes.number.isRequired,
-    pricePerKg: PropTypes.number.isRequired,
-    location: PropTypes.string.isRequired,
-    status: PropTypes.string.isRequired,
-    createdAt: PropTypes.string.isRequired
-  }).isRequired
 };
 
 export default BidCard;

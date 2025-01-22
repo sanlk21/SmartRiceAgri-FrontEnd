@@ -5,6 +5,9 @@ import {
   Cloud,
   CreditCard,
   FileText,
+  Gavel // Added for bids
+  ,
+
   HelpCircle,
   Home,
   LineChart,
@@ -12,7 +15,6 @@ import {
   MapPin,
   Package,
   Settings,
-  ShoppingCart,
   Users,
   Wallet,
   Warehouse
@@ -25,7 +27,6 @@ const Sidebar = () => {
   const [expandedMenus, setExpandedMenus] = useState({});
   const navigate = useNavigate();
 
-  // Check authentication on mount and when auth state changes
   useEffect(() => {
     if (!isAuthenticated || !user) {
       navigate('/login');
@@ -57,11 +58,37 @@ const Sidebar = () => {
         { to: '/farmer/fertilizer/quota', label: 'Quota Details' }
       ]
     },
-    { to: '/farmer/bids', icon: ShoppingCart, label: 'Active Bids' },
+    {
+      key: 'bids',
+      icon: Gavel,
+      label: 'Bids',
+      children: [
+        { to: '/farmer/bids/create', label: 'Create Bid' },
+        { to: '/farmer/bids/my-bids', label: 'My Bids' }
+      ]
+    },
     { to: '/farmer/orders', icon: FileText, label: 'Orders' },
     { to: '/farmer/payments', icon: CreditCard, label: 'Payments' },
     { to: '/farmer/analytics', icon: BarChart, label: 'Analytics' },
     { to: '/farmer/support', icon: HelpCircle, label: 'Support' }
+  ];
+
+  const getBuyerLinks = () => [
+    { to: '/buyer/dashboard', icon: Home, label: 'Dashboard' },
+    {
+      key: 'bids',
+      icon: Gavel,
+      label: 'Bids',
+      children: [
+        { to: '/buyer/bids/available', label: 'Available Bids' },
+        { to: '/buyer/bids/my-bids', label: 'My Bids' },
+        { to: '/buyer/bids/history', label: 'Bid History' }
+      ]
+    },
+    { to: '/buyer/orders', icon: Warehouse, label: 'My Orders' },
+    { to: '/buyer/payments', icon: Wallet, label: 'Payments' },
+    { to: '/buyer/analytics', icon: BarChart, label: 'Analytics' },
+    { to: '/buyer/support', icon: HelpCircle, label: 'Support' }
   ];
 
   const getAdminLinks = () => [
@@ -69,7 +96,7 @@ const Sidebar = () => {
     { to: '/admin/lands', icon: MapPin, label: 'Land Administration' },
     {
       key: 'bids',
-      icon: ShoppingCart,
+      icon: Gavel,
       label: 'Bid Management',
       children: [
         { to: '/admin/bids', label: 'Dashboard' },
@@ -94,15 +121,6 @@ const Sidebar = () => {
     { to: '/admin/support', icon: HelpCircle, label: 'Support Tickets' },
     { to: '/admin/analytics', icon: LineChart, label: 'Analytics' },
     { to: '/admin/settings', icon: Settings, label: 'Settings' }
-  ];
-
-  const getBuyerLinks = () => [
-    { to: '/buyer/dashboard', icon: Home, label: 'Dashboard' },
-    { to: '/buyer/marketplace', icon: ShoppingCart, label: 'Marketplace' },
-    { to: '/buyer/orders', icon: Warehouse, label: 'My Orders' },
-    { to: '/buyer/payments', icon: Wallet, label: 'Payments' },
-    { to: '/buyer/analytics', icon: BarChart, label: 'Analytics' },
-    { to: '/buyer/support', icon: HelpCircle, label: 'Support' }
   ];
 
   const getLinks = () => {
@@ -175,7 +193,6 @@ const Sidebar = () => {
     );
   };
 
-  // If not authenticated, don't render the sidebar
   if (!isAuthenticated || !user) {
     return null;
   }
@@ -184,20 +201,17 @@ const Sidebar = () => {
     <div className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-64">
         <div className="flex flex-col h-0 flex-1 bg-gray-800">
-          {/* Logo */}
           <div className="flex items-center h-16 flex-shrink-0 px-4 bg-gray-900">
             <h1 className="text-xl font-bold text-white">
               Smart Agriculture
             </h1>
           </div>
 
-          {/* Navigation */}
           <div className="flex-1 flex flex-col overflow-y-auto">
             <nav className="flex-1 px-2 py-4 space-y-1">
               {getLinks().map(renderNavItem)}
             </nav>
 
-            {/* User Info and Logout */}
             <div className="flex-shrink-0 bg-gray-700 p-4">
               <div className="flex flex-col space-y-3">
                 <div className="flex items-center">
