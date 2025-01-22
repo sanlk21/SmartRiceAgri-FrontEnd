@@ -1,4 +1,3 @@
-// src/routes/bids/index.jsx
 import AdminActiveBids from '@/components/admin/bids/AdminActiveBids';
 import AdminBidAnalytics from '@/components/admin/bids/AdminBidAnalytics';
 import AdminBidDashboard from '@/components/admin/bids/AdminBidDashboard';
@@ -32,7 +31,7 @@ const BidRoutes = () => {
         <>
           <Route path="create" element={<CreateBid />} />
           <Route path="my-bids" element={<BidList />} />
-          <Route path=":bidId" element={<BidDetails />} />
+          <Route path=":farmerNic" element={<BidDetails />} />
         </>
       )}
 
