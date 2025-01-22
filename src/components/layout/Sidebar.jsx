@@ -8,6 +8,8 @@ import {
   Gavel // Added for bids
   ,
 
+
+
   HelpCircle,
   Home,
   LineChart,
@@ -55,8 +57,8 @@ const Sidebar = () => {
       label: 'Fertilizer Quota',
       children: [
         { to: '/farmer/fertilizer', label: 'Overview' },
-        { to: '/farmer/fertilizer/quota', label: 'Quota Details' }
-      ]
+        { to: '/farmer/fertilizer/quota', label: 'Quota Details' },
+      ],
     },
     {
       key: 'bids',
@@ -64,14 +66,16 @@ const Sidebar = () => {
       label: 'Bids',
       children: [
         { to: '/farmer/bids/create', label: 'Create Bid' },
-        { to: '/farmer/bids/my-bids', label: 'My Bids' }
-      ]
+        { to: '/farmer/bids/list', label: 'Bid List' }, // New entry for bidList.jsx
+        { to: '/farmer/bids/details', label: 'Bid Details' }, // New entry for bidDetails.jsx
+      ],
     },
     { to: '/farmer/orders', icon: FileText, label: 'Orders' },
     { to: '/farmer/payments', icon: CreditCard, label: 'Payments' },
     { to: '/farmer/analytics', icon: BarChart, label: 'Analytics' },
-    { to: '/farmer/support', icon: HelpCircle, label: 'Support' }
+    { to: '/farmer/support', icon: HelpCircle, label: 'Support' },
   ];
+  
 
   const getBuyerLinks = () => [
     { to: '/buyer/dashboard', icon: Home, label: 'Dashboard' },

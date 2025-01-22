@@ -11,6 +11,8 @@ import {
 import Loading from './components/common/Loading';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Layout from './components/layout/Layout';
+import ErrorBoundary from './components/shared/ErrorBoundary';
+import { Toaster } from './components/ui/toaster';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -44,20 +46,34 @@ import { OrderProvider } from './context/OrderContext';
 import { PaymentProvider } from './context/PaymentContext';
 import { SupportProvider } from './context/SupportContext';
 
+// Error Boundary Component
+const ErrorBoundaryWrapper = ({ children }) => (
+  <ErrorBoundary>
+    {children}
+  </ErrorBoundary>
+);
+
+ErrorBoundaryWrapper.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+// App Providers Component
 const AppProviders = ({ children }) => (
-  <AuthProvider>
-    <OrderProvider>
-      <PaymentProvider>
-        <FertilizerProvider>
-          <SupportProvider>
-            <BidProvider>
-              {children}
-            </BidProvider>
-          </SupportProvider>
-        </FertilizerProvider>
-      </PaymentProvider>
-    </OrderProvider>
-  </AuthProvider>
+  <ErrorBoundaryWrapper>
+    <AuthProvider>
+      <OrderProvider>
+        <PaymentProvider>
+          <FertilizerProvider>
+            <SupportProvider>
+              <BidProvider>
+                {children}
+              </BidProvider>
+            </SupportProvider>
+          </FertilizerProvider>
+        </PaymentProvider>
+      </OrderProvider>
+    </AuthProvider>
+  </ErrorBoundaryWrapper>
 );
 
 AppProviders.propTypes = {
@@ -66,6 +82,7 @@ AppProviders.propTypes = {
 
 AppProviders.displayName = 'AppProviders';
 
+// Route Configuration
 const routeConfig = {
   farmer: [
     { path: "dashboard", element: <FarmerDashboard /> },
@@ -95,16 +112,26 @@ const routeConfig = {
   ]
 };
 
+// Generate Role-based Routes
 const generateRoleRoutes = (role) => (
   <Route key={role} element={<ProtectedRoute allowedRoles={[role.toUpperCase()]} />}>
     <Route element={<Layout />}>
       {routeConfig[role].map(({ path, element }) => (
-        <Route key={path} path={`/${role}/${path}`} element={element} />
+        <Route 
+          key={path} 
+          path={`/${role}/${path}`} 
+          element={
+            <ErrorBoundaryWrapper>
+              {element}
+            </ErrorBoundaryWrapper>
+          } 
+        />
       ))}
     </Route>
   </Route>
 );
 
+// Main App Component
 function App() {
   return (
     <Router>
@@ -125,6 +152,7 @@ function App() {
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Suspense>
+        <Toaster /> {/* Global Toast Notifications */}
       </AppProviders>
     </Router>
   );
