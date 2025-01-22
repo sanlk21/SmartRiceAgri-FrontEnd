@@ -8,6 +8,7 @@ import {
   HelpCircle,
   Home,
   LineChart,
+  LogOut,
   MapPin,
   Package,
   Settings,
@@ -16,18 +17,31 @@ import {
   Wallet,
   Warehouse
 } from 'lucide-react';
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [expandedMenus, setExpandedMenus] = useState({});
+  const navigate = useNavigate();
+
+  // Check authentication on mount and when auth state changes
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const toggleMenu = (menuKey) => {
     setExpandedMenus(prev => ({
       ...prev,
       [menuKey]: !prev[menuKey]
     }));
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   const getFarmerLinks = () => [
@@ -161,6 +175,11 @@ const Sidebar = () => {
     );
   };
 
+  // If not authenticated, don't render the sidebar
+  if (!isAuthenticated || !user) {
+    return null;
+  }
+
   return (
     <div className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-64">
@@ -178,17 +197,26 @@ const Sidebar = () => {
               {getLinks().map(renderNavItem)}
             </nav>
 
-            {/* User Info */}
-            <div className="flex-shrink-0 flex bg-gray-700 p-4">
-              <div className="flex items-center">
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-white">
-                    {user?.fullName}
-                  </p>
-                  <p className="text-xs text-gray-300">
-                    {user?.role?.toLowerCase()}
-                  </p>
+            {/* User Info and Logout */}
+            <div className="flex-shrink-0 bg-gray-700 p-4">
+              <div className="flex flex-col space-y-3">
+                <div className="flex items-center">
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-white">
+                      {user?.fullName}
+                    </p>
+                    <p className="text-xs text-gray-300">
+                      {user?.role?.toLowerCase()}
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center px-2 py-2 text-sm font-medium text-gray-300 hover:bg-gray-600 hover:text-white rounded-md w-full"
+                >
+                  <LogOut className="mr-3 h-5 w-5" />
+                  Logout
+                </button>
               </div>
             </div>
           </div>

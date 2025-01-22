@@ -1,36 +1,44 @@
+// src/components/buyer/bids/BidCard.jsx
+import BidStatusBadge from '@/components/shared/BidStatusBadge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PropTypes from 'prop-types';
+import React from 'react';
 
-const BidCard = ({ bid, onBidClick }) => {
-  const isExpiringSoon = new Date(bid.expiryDate) - new Date() < 24 * 60 * 60 * 1000; // 24 hours
-
+const BidCard = ({ bid }) => {
   return (
-    <Card className="p-4">
-      <div className="flex justify-between items-start">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">{bid.riceVariety}</h3>
-            {isExpiringSoon && (
-              <span className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded">
-                Expiring Soon
-              </span>
-            )}
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>{bid.riceVariety} Rice</CardTitle>
+          <BidStatusBadge status={bid.status} />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Quantity</p>
+            <p className="font-medium">{bid.quantity} kg</p>
           </div>
-          <p>Quantity: {bid.quantity}kg</p>
-          <p>Minimum Price: Rs.{bid.minimumPrice}/kg</p>
-          <p>Location: {bid.location}</p>
-          <p>Posted Date: {new Date(bid.postedDate).toLocaleDateString()}</p>
+          <div>
+            <p className="text-sm text-gray-500">Price per kg</p>
+            <p className="font-medium">Rs. {bid.pricePerKg}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Location</p>
+            <p className="font-medium">{bid.location}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Posted Date</p>
+            <p className="font-medium">
+              {new Date(bid.createdAt).toLocaleDateString()}
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <Button onClick={() => onBidClick(bid)}>
-            Place Bid
-          </Button>
-          <Button variant="outline" onClick={() => window.open(`/bids/${bid.id}`, '_blank')}>
-            View Details
-          </Button>
+        <div className="mt-4 flex justify-end">
+          <Button>Place Bid</Button>
         </div>
-      </div>
+      </CardContent>
     </Card>
   );
 };
@@ -40,12 +48,11 @@ BidCard.propTypes = {
     id: PropTypes.string.isRequired,
     riceVariety: PropTypes.string.isRequired,
     quantity: PropTypes.number.isRequired,
-    minimumPrice: PropTypes.number.isRequired,
+    pricePerKg: PropTypes.number.isRequired,
     location: PropTypes.string.isRequired,
-    postedDate: PropTypes.string.isRequired,
-    expiryDate: PropTypes.string,
-  }).isRequired,
-  onBidClick: PropTypes.func.isRequired,
+    status: PropTypes.string.isRequired,
+    createdAt: PropTypes.string.isRequired
+  }).isRequired
 };
 
 export default BidCard;

@@ -32,24 +32,27 @@ import UserSupportPage from './pages/support/UserSupportPage';
 
 // Route Configurations
 import PaymentRoutes from './pages/payments';
+import BidRoutes from './routes/bids';
 import FertilizerRoutes from './routes/fertilizer';
 import OrderRoutes from './routes/orders';
 
 // Context Providers
 import { AuthProvider } from './context/AuthContext';
+import { BidProvider } from './context/BidContext';
 import { FertilizerProvider } from './context/FertilizerContext';
 import { OrderProvider } from './context/OrderContext';
 import { PaymentProvider } from './context/PaymentContext';
 import { SupportProvider } from './context/SupportContext';
 
-// App Providers wrapper component
 const AppProviders = ({ children }) => (
   <AuthProvider>
     <OrderProvider>
       <PaymentProvider>
         <FertilizerProvider>
           <SupportProvider>
-            {children}
+            <BidProvider>
+              {children}
+            </BidProvider>
           </SupportProvider>
         </FertilizerProvider>
       </PaymentProvider>
@@ -63,13 +66,13 @@ AppProviders.propTypes = {
 
 AppProviders.displayName = 'AppProviders';
 
-// Route configurations
 const routeConfig = {
   farmer: [
     { path: "dashboard", element: <FarmerDashboard /> },
     { path: "weather", element: <Weather /> },
     { path: "lands", element: <LandManagement /> },
     { path: "fertilizer/*", element: <FertilizerRoutes /> },
+    { path: "bids/*", element: <BidRoutes /> },
     { path: "orders/*", element: <OrderRoutes /> },
     { path: "payments/*", element: <PaymentRoutes /> },
     { path: "support/*", element: <UserSupportPage /> }
@@ -77,6 +80,7 @@ const routeConfig = {
   admin: [
     { path: "dashboard", element: <AdminDashboard /> },
     { path: "lands", element: <LandAdministration /> },
+    { path: "bids/*", element: <BidRoutes /> },
     { path: "fertilizer/*", element: <FertilizerRoutes /> },
     { path: "orders/*", element: <OrderRoutes /> },
     { path: "payments/*", element: <PaymentRoutes /> },
@@ -84,13 +88,13 @@ const routeConfig = {
   ],
   buyer: [
     { path: "dashboard", element: <BuyerDashboard /> },
+    { path: "bids/*", element: <BidRoutes /> },
     { path: "orders/*", element: <OrderRoutes /> },
     { path: "payments/*", element: <PaymentRoutes /> },
     { path: "support/*", element: <UserSupportPage /> }
   ]
 };
 
-// Role-based route generator
 const generateRoleRoutes = (role) => (
   <Route key={role} element={<ProtectedRoute allowedRoles={[role.toUpperCase()]} />}>
     <Route element={<Layout />}>

@@ -1,4 +1,8 @@
+// src/components/shared/BidNotifications.jsx
 import { useToast } from '@/components/ui/use-toast';
+import PropTypes from 'prop-types';
+import React from 'react';
+import BidStatusBadge from './BidStatusBadge';
 
 export const useBidNotifications = () => {
   const { toast } = useToast();
@@ -60,4 +64,13 @@ export const useBidNotifications = () => {
     showBidExpired,
     showBidError,
   };
+};
+
+export const BidStatusBadge = ({ status, className }) => {
+  return <BidStatusBadge status={status} className={className} />;
+};
+
+BidStatusBadge.propTypes = {
+  status: PropTypes.string.isRequired,
+  className: PropTypes.string
 };
