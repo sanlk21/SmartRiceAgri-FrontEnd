@@ -1,8 +1,41 @@
-import axios from '../api/axios';
+import axios from '@/api/axios';
 
 class BidService {
     constructor() {
         this.baseURL = '/bids';
+    }
+
+    async getAllBids({ signal, ...filters } = {}) {
+        try {
+            const params = new URLSearchParams();
+            
+            if (filters.status && filters.status !== 'all') {
+                params.append('status', filters.status);
+            }
+            if (filters.dateRange) {
+                const days = parseInt(filters.dateRange);
+                const fromDate = new Date();
+                fromDate.setDate(fromDate.getDate() - days);
+                params.append('fromDate', fromDate.toISOString());
+            }
+            if (filters.searchTerm) {
+                params.append('searchTerm', filters.searchTerm);
+            }
+    
+            const response = await axios.get(`${this.baseURL}/admin/all`, {
+                params,
+                signal
+            });
+    
+            return response.data.map(bid => ({
+                ...bid,
+                buyerNic: bid.winningBuyerNic || '-',
+                winningBidPrice: bid.winningBidAmount || null,
+                createdAt: bid.postedDate ? new Date(bid.postedDate).toLocaleDateString() : 'Invalid Date'
+            }));
+        } catch (error) {
+            throw this.handleError(error);
+        }
     }
 
     async getFilteredBids(filters = {}) {
@@ -42,15 +75,6 @@ class BidService {
     async cancelBid(bidId) {
         try {
             const response = await axios.post(`${this.baseURL}/${bidId}/cancel`);
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
-        }
-    }
-
-    async getAllBids() {
-        try {
-            const response = await axios.get(`${this.baseURL}/admin/all`);
             return response.data;
         } catch (error) {
             throw this.handleError(error);
