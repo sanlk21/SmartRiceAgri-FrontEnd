@@ -3,7 +3,7 @@ import axios from './axios';
 export const paymentApi = {
     // Initialize payment
     initializePayment: async (orderId, paymentMethod) => {
-        const response = await axios.post('/api/payments/initialize', {
+        const response = await axios.post('/payments/initialize', {
             orderId,
             paymentMethod
         });
@@ -19,7 +19,7 @@ export const paymentApi = {
         }
 
         const response = await axios.post(
-            `/api/payments/${paymentId}/bank-transfer`,
+            `/payments/${paymentId}/bank-transfer`,
             formData,
             {
                 headers: {
@@ -33,7 +33,7 @@ export const paymentApi = {
     // Cash on delivery payment
     processCashOnDelivery: async (paymentId, deliveryData) => {
         const response = await axios.post(
-            `/api/payments/${paymentId}/cash-on-delivery`,
+            `/payments/${paymentId}/cash-on-delivery`,
             deliveryData
         );
         return response.data;
@@ -42,7 +42,7 @@ export const paymentApi = {
     // Online payment
     processOnlinePayment: async (paymentId, paymentData) => {
         const response = await axios.post(
-            `/api/payments/${paymentId}/online-payment`,
+            `/payments/${paymentId}/online-payment`,
             paymentData
         );
         return response.data;
@@ -50,19 +50,19 @@ export const paymentApi = {
 
     // Get payment by ID
     getPayment: async (paymentId) => {
-        const response = await axios.get(`/api/payments/${paymentId}`);
+        const response = await axios.get(`/payments/${paymentId}`);
         return response.data;
     },
 
     // Get buyer payments
     getBuyerPayments: async (buyerNic) => {
-        const response = await axios.get(`/api/payments/buyer/${buyerNic}`);
+        const response = await axios.get(`/payments/buyer/${buyerNic}`);
         return response.data;
     },
 
     // Get farmer payments
     getFarmerPayments: async (farmerNic) => {
-        const response = await axios.get(`/api/payments/farmer/${farmerNic}`);
+        const response = await axios.get(`/payments/farmer/${farmerNic}`);
         return response.data;
     },
 

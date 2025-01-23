@@ -1,8 +1,7 @@
+import WeatherAlert from '@/components/farmer/WeatherAlert';
 import { Card } from '@/components/ui/card';
+import { useWeather } from '@/hooks/useWeather';
 import React from 'react';
-import WeatherAlert from '../../components/farmer/WeatherAlert';
-import WeatherDashboard from '../../components/farmer/WeatherDashboard';
-import { useWeather } from '../../hooks/useWeather';
 
 const Weather = () => {
   const { weeklyForecast, alerts, loading, error } = useWeather();
@@ -31,9 +30,20 @@ const Weather = () => {
       <WeatherAlert alerts={alerts} />
       
       {/* Weather Dashboard */}
-      <WeatherDashboard predictions={weeklyForecast} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {weeklyForecast?.map((forecast, index) => (
+          <Card key={index} className="p-4">
+            <div className="space-y-2">
+              <p className="font-medium">{new Date(forecast.date).toLocaleDateString()}</p>
+              <p>Temperature: {forecast.temperature}°C</p>
+              <p>Rainfall: {forecast.rainfall}mm</p>
+              <p>Wind Speed: {forecast.windSpeed} km/h</p>
+            </div>
+          </Card>
+        ))}
+      </div>
       
-      {/* Farming Recommendations based on weather */}
+      {/* Farming Recommendations */}
       <Card className="p-4">
         <h2 className="text-xl font-semibold mb-4">Farming Recommendations</h2>
         <ul className="space-y-2">
