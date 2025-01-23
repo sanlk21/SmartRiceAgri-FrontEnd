@@ -3,7 +3,7 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import orderApi from "../api/orderApi";
-import OrderList from "./OrderList";
+import OrderList from "../OrderList";
 
 const OrderContainer = ({ user }) => {
   const [orders, setOrders] = useState([]);

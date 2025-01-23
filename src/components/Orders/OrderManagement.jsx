@@ -1,71 +1,38 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext';
-import { useOrders } from '@/context/OrderContext';
-import { useEffect, useState } from 'react';
+// src/components/orders/OrderManagement.jsx
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import OrderList from './OrderList';
-import PaymentForm from './PaymentForm';
 
-const OrderManagement = () => {
+export default function OrderManagement() {
   const { user } = useAuth();
-  const { orders, loading, error, fetchOrders } = useOrders();
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      fetchOrders(user.role, user.nic);
-    }
-  }, [user, fetchOrders]);
-
-  const handlePaymentClick = (order) => {
-    setSelectedOrder(order);
-    setShowPaymentForm(true);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-48">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
+  const [activeTab, setActiveTab] = useState('active');
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Orders</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <OrderList 
-            orders={orders}
-            onPaymentClick={handlePaymentClick}
-            userRole={user?.role}
-          />
-        </CardContent>
-      </Card>
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">
+          {user?.role === 'FARMER' ? 'Sales Orders' : 'Purchase Orders'}
+        </h1>
+      </div>
 
-      {showPaymentForm && selectedOrder && (
-        <PaymentForm
-          order={selectedOrder}
-          onClose={() => setShowPaymentForm(false)}
-          onSuccess={() => {
-            setShowPaymentForm(false);
-            fetchOrders(user.role, user.nic);
-          }}
-        />
-      )}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="active">Active Orders</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="active">
+          <OrderList status="PENDING_PAYMENT" />
+        </TabsContent>
+        <TabsContent value="completed">
+          <OrderList status="PAYMENT_COMPLETED" />
+        </TabsContent>
+        <TabsContent value="cancelled">
+          <OrderList status="CANCELLED" />
+        </TabsContent>
+      </Tabs>
     </div>
   );
-};
-
-export default OrderManagement;
+}

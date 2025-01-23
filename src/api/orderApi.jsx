@@ -1,73 +1,44 @@
-// orderApi.js
+// src/api/orderApi.js
+import axiosInstance from './axios';
 
-import axios from "axios";
-
-const BASE_URL = "/api/orders";
-
-const handleApiError = (error) => {
-  if (error.response) {
-    throw new Error(error.response.data.message || "An error occurred");
-  } else if (error.request) {
-    throw new Error("No response from server");
-  } else {
-    throw new Error("Error setting up request");
-  }
-};
+const BASE_URL = '/orders';
 
 export const orderApi = {
   getFarmerOrders: async (farmerNic) => {
-    try {
-      const response = await axios.get(`${BASE_URL}/farmer/${farmerNic}`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error);
-    }
+    const response = await axiosInstance.get(`${BASE_URL}/farmer/${farmerNic}`);
+    return response.data;
   },
 
   getBuyerOrders: async (buyerNic) => {
-    try {
-      const response = await axios.get(`${BASE_URL}/buyer/${buyerNic}`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error);
-    }
-  },
-
-  updatePayment: async (orderId, paymentDetails) => {
-    try {
-      const response = await axios.post(`${BASE_URL}/${orderId}/payment`, paymentDetails);
-      return response.data;
-    } catch (error) {
-      handleApiError(error);
-    }
+    const response = await axiosInstance.get(`${BASE_URL}/buyer/${buyerNic}`);
+    return response.data;
   },
 
   getOrderDetails: async (orderId) => {
-    try {
-      const response = await axios.get(`${BASE_URL}/${orderId}`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error);
-    }
+    const response = await axiosInstance.get(`${BASE_URL}/${orderId}`);
+    return response.data;
   },
 
+  updatePayment: async (orderId, paymentDetails) => {
+    const response = await axiosInstance.post(`${BASE_URL}/${orderId}/payment`, paymentDetails);
+    return response.data;
+  },
+
+  updateOrderStatus: async (orderId, status) => {
+    const response = await axiosInstance.put(`${BASE_URL}/admin/${orderId}/status`, { status });
+    return response.data;
+  },
+
+  // Admin endpoints
   getAllOrders: async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/admin/all`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error);
-    }
+    const response = await axiosInstance.get(`${BASE_URL}/admin/all`);
+    return response.data;
   },
 
   getOrderStatistics: async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/admin/statistics`);
-      return response.data;
-    } catch (error) {
-      handleApiError(error);
-    }
-  },
+    const response = await axiosInstance.get(`${BASE_URL}/admin/statistics`);
+    return response.data;
+  }
 };
 
 export default orderApi;
