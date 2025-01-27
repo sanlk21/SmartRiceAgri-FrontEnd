@@ -18,13 +18,17 @@ import { Toaster } from './components/ui/toaster';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
-// Dashboard Pages
+// Admin Pages
+import UserManagement from './components/admin/users/UserManagement';
 import AdminDashboard from './pages/admin/Dashboard';
+import LandAdministration from './pages/admin/LandAdministration';
+import UserDetails from './pages/admin/users/UserDetails';
+
+// Dashboard Pages
 import BuyerDashboard from './pages/buyer/Dashboard';
 import FarmerDashboard from './pages/farmer/Dashboard';
 
 // Feature Pages
-import LandAdministration from './pages/admin/LandAdministration';
 import LandManagement from './pages/farmer/LandManagement';
 import Weather from './pages/farmer/Weather';
 
@@ -45,6 +49,7 @@ import { FertilizerProvider } from './context/FertilizerContext';
 import { OrderProvider } from './context/OrderContext';
 import { PaymentProvider } from './context/PaymentContext';
 import { SupportProvider } from './context/SupportContext';
+import { UserProvider } from './context/UserContext';
 
 // Error Boundary Component
 const ErrorBoundaryWrapper = ({ children }) => (
@@ -61,17 +66,19 @@ ErrorBoundaryWrapper.propTypes = {
 const AppProviders = ({ children }) => (
   <ErrorBoundaryWrapper>
     <AuthProvider>
-      <OrderProvider>
-        <PaymentProvider>
-          <FertilizerProvider>
-            <SupportProvider>
-              <BidProvider>
-                {children}
-              </BidProvider>
-            </SupportProvider>
-          </FertilizerProvider>
-        </PaymentProvider>
-      </OrderProvider>
+      <UserProvider>
+        <OrderProvider>
+          <PaymentProvider>
+            <FertilizerProvider>
+              <SupportProvider>
+                <BidProvider>
+                  {children}
+                </BidProvider>
+              </SupportProvider>
+            </FertilizerProvider>
+          </PaymentProvider>
+        </OrderProvider>
+      </UserProvider>
     </AuthProvider>
   </ErrorBoundaryWrapper>
 );
@@ -96,6 +103,8 @@ const routeConfig = {
   ],
   admin: [
     { path: "dashboard", element: <AdminDashboard /> },
+    { path: "users", element: <UserManagement /> },
+    { path: "users/:nic", element: <UserDetails /> },
     { path: "lands", element: <LandAdministration /> },
     { path: "bids/*", element: <BidRoutes /> },
     { path: "fertilizer/*", element: <FertilizerRoutes /> },
@@ -122,7 +131,9 @@ const generateRoleRoutes = (role) => (
           path={`/${role}/${path}`} 
           element={
             <ErrorBoundaryWrapper>
-              {element}
+              <Suspense fallback={<Loading />}>
+                {element}
+              </Suspense>
             </ErrorBoundaryWrapper>
           } 
         />
@@ -152,7 +163,7 @@ function App() {
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Suspense>
-        <Toaster /> {/* Global Toast Notifications */}
+        <Toaster />
       </AppProviders>
     </Router>
   );
