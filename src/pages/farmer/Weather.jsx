@@ -1,62 +1,147 @@
-import WeatherAlert from '@/components/farmer/WeatherAlert';
-import { Card } from '@/components/ui/card';
-import { useWeather } from '@/hooks/useWeather';
-import React from 'react';
+import { weatherApi } from '@/api/weatherApi';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, Cloud, CloudRain, Droplets, Sun, Wind } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 const Weather = () => {
-  const { weeklyForecast, alerts, loading, error } = useWeather();
+  const [forecast, setForecast] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchWeatherData();
+  }, []);
+
+  const fetchWeatherData = async () => {
+    try {
+      setLoading(true);
+      const data = await weatherApi.getForecast();
+      setForecast(JSON.parse(data));
+      setError(null);
+    } catch (err) {
+      setError('Failed to load weather forecast');
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getWeatherIcon = (type) => {
+    switch (type) {
+      case 'HEAVY_RAIN':
+        return <CloudRain className="h-12 w-12 text-blue-600" />;
+      case 'LIGHT_RAIN':
+        return <Droplets className="h-12 w-12 text-blue-400" />;
+      case 'HOT':
+        return <Sun className="h-12 w-12 text-orange-500" />;
+      case 'FAIR':
+        return <Sun className="h-12 w-12 text-yellow-400" />;
+      default:
+        return <Cloud className="h-12 w-12 text-gray-400" />;
+    }
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="p-4 bg-red-50 border-red-200">
-        <p className="text-red-600">Error loading weather data: {error}</p>
-      </Card>
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Weather Forecast</h1>
-      
-      {/* Weather Alerts */}
-      <WeatherAlert alerts={alerts} />
-      
-      {/* Weather Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {weeklyForecast?.map((forecast, index) => (
-          <Card key={index} className="p-4">
-            <div className="space-y-2">
-              <p className="font-medium">{new Date(forecast.date).toLocaleDateString()}</p>
-              <p>Temperature: {forecast.temperature}°C</p>
-              <p>Rainfall: {forecast.rainfall}mm</p>
-              <p>Wind Speed: {forecast.windSpeed} km/h</p>
-            </div>
-          </Card>
-        ))}
-      </div>
-      
-      {/* Farming Recommendations */}
-      <Card className="p-4">
-        <h2 className="text-xl font-semibold mb-4">Farming Recommendations</h2>
-        <ul className="space-y-2">
-          {weeklyForecast?.[0]?.rainfall > 30 && (
-            <li>• High rainfall expected. Consider delaying any pesticide application.</li>
-          )}
-          {weeklyForecast?.[0]?.temperature > 32 && (
-            <li>• High temperatures expected. Ensure adequate irrigation.</li>
-          )}
-          {weeklyForecast?.[0]?.windSpeed > 20 && (
-            <li>• Strong winds expected. Secure any loose equipment or structures.</li>
-          )}
-        </ul>
+      <Card>
+        <CardHeader>
+          <CardTitle>7-Day Weather Forecast</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {forecast?.map((day, index) => (
+              <Card key={index} className="overflow-hidden">
+                <CardHeader className="bg-gray-50 p-4">
+                  <div className="text-lg font-semibold">
+                    {new Date(day.date).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    {getWeatherIcon(day.weather_type)}
+                    <div className="text-2xl font-bold">{day.temperature}°C</div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <CloudRain className="h-4 w-4 text-blue-500" />
+                      <span>Rain: {(day.rainfall_probability * 100).toFixed(0)}%</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Wind className="h-4 w-4 text-gray-500" />
+                      <span>Wind: {day.wind_speed} km/h</span>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t">
+                      <span className="text-sm font-medium text-gray-600">
+                        {day.weather_type.replace('_', ' ')}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Farming Recommendations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {forecast?.some(day => day.rainfall_probability > 0.7) && (
+              <Alert>
+                <CloudRain className="h-4 w-4" />
+                <AlertDescription>
+                  Heavy rainfall expected. Consider delaying pesticide application.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {forecast?.some(day => day.temperature > 32) && (
+              <Alert>
+                <Sun className="h-4 w-4" />
+                <AlertDescription>
+                  High temperatures expected. Ensure adequate irrigation.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {forecast?.some(day => day.wind_speed > 20) && (
+              <Alert>
+                <Wind className="h-4 w-4" />
+                <AlertDescription>
+                  Strong winds predicted. Secure any loose equipment.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </CardContent>
       </Card>
     </div>
   );

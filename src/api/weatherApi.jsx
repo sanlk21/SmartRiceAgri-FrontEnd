@@ -1,18 +1,52 @@
 import axios from './axios';
 
+const API_BASE_URL = '/weather';
+
 export const weatherApi = {
- getDailyForecast: async () => {
-   const response = await axios.get('/weather/daily');
-   return response.data;
- },
+  // Get 7-day weather forecast
+  getForecast: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/forecast`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching forecast:', error);
+      return {
+        error: true,
+        message: error.response?.data?.message || 'Failed to load weather forecast',
+        data: []
+      };
+    }
+  },
 
- getWeeklyForecast: async () => {
-   const response = await axios.get('/weather/weekly');
-   return response.data;
- },
+  // Get daily weather predictions
+  getDailyForecast: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/daily`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching daily forecast:', error);
+      return {
+        error: true,
+        message: error.response?.data?.message || 'Failed to load daily forecast',
+        data: []
+      };
+    }
+  },
 
- getLocationWeather: async (latitude, longitude) => {
-   const response = await axios.get(`/weather/location?lat=${latitude}&lon=${longitude}`);
-   return response.data;
- },
+  // Get weekly weather predictions
+  getWeeklyForecast: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/weekly`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching weekly forecast:', error);
+      return {
+        error: true,
+        message: error.response?.data?.message || 'Failed to load weekly forecast',
+        data: []
+      };
+    }
+  }
 };
+
+export default weatherApi;
