@@ -1,21 +1,31 @@
 import axios from './axios';
 
-const API_BASE_URL = '/weather'; // Ensure the base URL matches your backend endpoint
+const API_BASE_URL = '/weather';
 
 const handleApiError = (error, defaultMessage) => {
   console.error('API Error:', error);
   return {
     error: true,
     message: error.response?.data?.message || defaultMessage,
-    data: [] // Return an empty array for consistent frontend processing
+    data: []
   };
 };
 
 export const weatherApi = {
-  // Get 7-day weather forecast
-  getForecast: async () => {
+  // Get available locations
+  getLocations: async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/forecast`);
+      const response = await axios.get(`${API_BASE_URL}/locations`);
+      return { error: false, data: response.data };
+    } catch (error) {
+      return handleApiError(error, 'Failed to load locations');
+    }
+  },
+
+  // Get 7-day weather forecast for a location
+  getForecast: async (locationId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/forecast/${locationId}`);
       if (response.data && response.data.length > 0) {
         return { error: false, data: response.data };
       }
@@ -29,10 +39,10 @@ export const weatherApi = {
     }
   },
 
-  // Get daily weather predictions
-  getDailyForecast: async () => {
+  // Get daily weather predictions for a location
+  getDailyForecast: async (locationId) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/daily`);
+      const response = await axios.get(`${API_BASE_URL}/daily/${locationId}`);
       if (response.data && response.data.length > 0) {
         return { error: false, data: response.data };
       }
@@ -46,10 +56,10 @@ export const weatherApi = {
     }
   },
 
-  // Get weekly weather predictions
-  getWeeklyForecast: async () => {
+  // Get weekly weather predictions for a location
+  getWeeklyForecast: async (locationId) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/weekly`);
+      const response = await axios.get(`${API_BASE_URL}/weekly/${locationId}`);
       if (response.data && response.data.length > 0) {
         return { error: false, data: response.data };
       }
