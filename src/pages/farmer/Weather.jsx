@@ -9,19 +9,53 @@ import {
 } from "@/components/ui/select";
 import { useWeather } from '@/hooks/useWeather';
 import { AlertTriangle, Cloud, CloudRain, Droplets, Sun, Wind } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+
+const locationData = [
+  { id: 0, name: 'Colombo' },
+  { id: 1, name: 'Gampaha' },
+  { id: 2, name: 'Kalutara' },
+  { id: 3, name: 'Kandy' },
+  { id: 4, name: 'Matale' },
+  { id: 5, name: 'Nuwara Eliya' },
+  { id: 6, name: 'Galle' },
+  { id: 7, name: 'Matara' },
+  { id: 8, name: 'Hambantota' },
+  { id: 9, name: 'Jaffna' },
+  { id: 10, name: 'Kilinochchi' },
+  { id: 11, name: 'Mannar' },
+  { id: 12, name: 'Vavuniya' },
+  { id: 13, name: 'Mullaitivu' },
+  { id: 14, name: 'Batticaloa' },
+  { id: 15, name: 'Ampara' },
+  { id: 16, name: 'Trincomalee' },
+  { id: 17, name: 'Kurunegala' },
+  { id: 18, name: 'Puttalam' },
+  { id: 19, name: 'Anuradhapura' },
+  { id: 20, name: 'Polonnaruwa' },
+  { id: 21, name: 'Badulla' },
+  { id: 22, name: 'Moneragala' },
+  { id: 23, name: 'Ratnapura' },
+  { id: 24, name: 'Kegalle' },
+  { id: 25, name: 'Welimada' },
+  { id: 26, name: 'Bandarawela' }
+];
 
 const Weather = () => {
-  const [availableLocations] = useState(Array.from({ length: 26 }, (_, i) => i + 1));
   const {
     selectedLocation,
     setSelectedLocation,
     weeklyForecast,
     loading,
-    error
+    error,
+    refreshWeather
   } = useWeather();
 
-  // Helper function to deduplicate and get the first forecast for each date
+  const getCityName = (locationId) => {
+    const location = locationData.find(loc => loc.id === locationId);
+    return location ? location.name : '';
+  };
+
   const getUniqueForecastsByDate = (forecasts) => {
     if (!forecasts) return [];
     
@@ -35,12 +69,6 @@ const Weather = () => {
     
     return Object.values(uniqueForecasts);
   };
-
-  useEffect(() => {
-    if (!selectedLocation && availableLocations.length > 0) {
-      setSelectedLocation(availableLocations[0]);
-    }
-  }, []);
 
   const getWeatherIcon = (type) => {
     switch (type) {
@@ -59,52 +87,62 @@ const Weather = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
-
   const uniqueForecasts = getUniqueForecastsByDate(weeklyForecast);
+  const currentCity = getCityName(selectedLocation);
 
   return (
     <div className="container mx-auto p-4 space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>7-Day Weather Forecast</CardTitle>
-          <Select
-            value={selectedLocation?.toString()}
-            onValueChange={(value) => setSelectedLocation(parseInt(value))}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select location" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableLocations.map((locationId) => (
-                <SelectItem key={locationId} value={locationId.toString()}>
-                  Location {locationId}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <CardTitle>
+            7-Day Weather Forecast {currentCity && `- ${currentCity}`}
+          </CardTitle>
+          <div className="flex gap-2 items-center">
+            <Select
+              value={selectedLocation?.toString()}
+              onValueChange={setSelectedLocation}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select location">
+                  {currentCity || "Select location"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {locationData.map((location) => (
+                  <SelectItem key={location.id} value={location.id.toString()}>
+                    {location.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {loading && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
+            )}
+          </div>
         </CardHeader>
         <CardContent>
-          {!uniqueForecasts || uniqueForecasts.length === 0 ? (
-            <Alert>
+          {error ? (
+            <Alert variant="destructive" className="mb-4">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>No weather forecast data available.</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
+          ) : !uniqueForecasts || uniqueForecasts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-8 space-y-4">
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  No weather forecast data available for {currentCity}.
+                </AlertDescription>
+              </Alert>
+              {!loading && (
+                <button
+                  onClick={refreshWeather}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                >
+                  Retry Loading
+                </button>
+              )}
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {uniqueForecasts.map((day, index) => (
