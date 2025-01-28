@@ -2,6 +2,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from '../components/layouts/Layout';
 
+
 // Import Route Groups
 import AdminRoutes from './admin/AdminRoute';
 import BuyerRoutes from './buyer';
@@ -34,5 +35,6 @@ const AppRoutes = () => {
     </Routes>
   );
 };
+
 
 export default AppRoutes;

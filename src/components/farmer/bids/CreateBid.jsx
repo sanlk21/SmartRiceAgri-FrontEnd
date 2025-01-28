@@ -13,29 +13,30 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from '@/context/AuthContext';
 import { bidService } from '@/services/bidService';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const RiceVarieties = [
   { id: 'SAMBA', name: 'සම්බා (Samba)' },
-{ id: 'KIRI_SAMBA', name: 'කිරි සම්බා (Kiri Samba)' },
-{ id: 'NADU', name: 'නාදු (Nadu)' },
-{ id: 'KEKULU', name: 'කැකුළු (Kekulu)' },
-{ id: 'RED_SAMBA', name: 'රතු සම්බා (Red Samba)' },
-{ id: 'RED_NADU', name: 'රතු නාදු (Red Nadu)' },
-{ id: 'SUWANDEL', name: 'සුවන්දෙල් (Suwandel)' },
-{ id: 'KALU_HEENATI', name: 'කලු හීනටි (Kalu Heenati)' },
-{ id: 'PACHCHAPERUMAL', name: 'පච්චපෙරුමාල් (Pachchaperumal)' },
-{ id: 'MADATHAWALU', name: 'මඩතාවලු (Madathawalu)' },
-{ id: 'KURULUTHUDA', name: 'කුරුළුතුඩ (Kuruluthuda)' },
-{ id: 'RATH_SUWANDEL', name: 'රත් සුවන්දෙල් (Rath Suwandel)' },
-{ id: 'HETADA_WEE', name: 'හේටද වී (Hetada Wee)' },
-{ id: 'GONABARU', name: 'ගොනබරු (Gonabaru)' },
-{ id: 'MURUNGAKAYAN', name: 'මුරුංගකයාන් (Murungakayan)' }
-
+  { id: 'KIRI_SAMBA', name: 'කිරි සම්බා (Kiri Samba)' },
+  { id: 'NADU', name: 'නාදු (Nadu)' },
+  { id: 'KEKULU', name: 'කැකුළු (Kekulu)' },
+  { id: 'RED_SAMBA', name: 'රතු සම්බා (Red Samba)' },
+  { id: 'RED_NADU', name: 'රතු නාදු (Red Nadu)' },
+  { id: 'SUWANDEL', name: 'සුවන්දෙල් (Suwandel)' },
+  { id: 'KALU_HEENATI', name: 'කලු හීනටි (Kalu Heenati)' },
+  { id: 'PACHCHAPERUMAL', name: 'පච්චපෙරුමාල් (Pachchaperumal)' },
+  { id: 'MADATHAWALU', name: 'මඩතාවලු (Madathawalu)' },
+  { id: 'KURULUTHUDA', name: 'කුරුළුතුඩ (Kuruluthuda)' },
+  { id: 'RATH_SUWANDEL', name: 'රත් සුවන්දෙල් (Rath Suwandel)' },
+  { id: 'HETADA_WEE', name: 'හේටද වී (Hetada Wee)' },
+  { id: 'GONABARU', name: 'ගොනබරු (Gonabaru)' },
+  { id: 'MURUNGAKAYAN', name: 'මුරුංගකයාන් (Murungakayan)' }
 ];
 
 const CreateBid = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     quantity: '',
@@ -47,6 +48,16 @@ const CreateBid = () => {
   });
 
   const validateForm = () => {
+    if (!user?.nic) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please log in to create a bid"
+      });
+      return false;
+    }
+
+    // Check for required fields
     const validationFields = {
       riceVariety: "Please select a rice variety",
       quantity: "Please enter a valid quantity",
@@ -65,6 +76,41 @@ const CreateBid = () => {
         return false;
       }
     }
+
+    // Validate quantity and price
+    if (parseFloat(formData.quantity) <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Quantity must be greater than 0"
+      });
+      return false;
+    }
+
+    if (parseFloat(formData.minimumPrice) <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Minimum price must be greater than 0"
+      });
+      return false;
+    }
+
+    // Validate harvest date is in the future
+    const harvestDate = new Date(formData.harvestDate);
+    harvestDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (harvestDate < today) {
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Harvest date must be in the future"
+      });
+      return false;
+    }
+
     return true;
   };
 
@@ -74,12 +120,27 @@ const CreateBid = () => {
     
     setLoading(true);
     try {
-      await bidService.createBid({
-        ...formData,
-        farmerNic: user?.nic,
-        status: 'PENDING'
-      });
+      // Create bid data object
+      const bidData = {
+        farmerNic: user.nic,
+        quantity: parseFloat(formData.quantity),
+        minimumPrice: parseFloat(formData.minimumPrice),
+        riceVariety: formData.riceVariety,
+        description: formData.description || '',
+        location: formData.location,
+        harvestDate: new Date(formData.harvestDate).toISOString()
+      };
+
+      console.log('Creating bid with data:', bidData);
+
+      await bidService.createBid(bidData);
       
+      toast({
+        title: "Success",
+        description: "Bid created successfully!"
+      });
+
+      // Reset form
       setFormData({
         quantity: '',
         minimumPrice: '',
@@ -88,12 +149,14 @@ const CreateBid = () => {
         location: '',
         harvestDate: ''
       });
+
+      // Navigate to bid list after short delay
+      setTimeout(() => {
+        navigate('/farmer/bids/list');
+      }, 1500);
       
-      toast({
-        title: "Success",
-        description: "Bid created successfully!"
-      });
     } catch (error) {
+      console.error('Error creating bid:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -102,6 +165,11 @@ const CreateBid = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getMinDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
   };
 
   return (
@@ -116,9 +184,14 @@ const CreateBid = () => {
               <label className="text-sm font-medium">Quantity (kg)*</label>
               <Input
                 type="number"
+                min="0"
+                step="0.01"
                 placeholder="Enter quantity"
                 value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: parseFloat(e.target.value) || '' })}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  quantity: e.target.value === '' ? '' : e.target.value
+                })}
               />
             </div>
 
@@ -126,9 +199,14 @@ const CreateBid = () => {
               <label className="text-sm font-medium">Minimum Price (per kg)*</label>
               <Input
                 type="number"
+                min="0"
+                step="0.01"
                 placeholder="Enter minimum price"
                 value={formData.minimumPrice}
-                onChange={(e) => setFormData({ ...formData, minimumPrice: parseFloat(e.target.value) || '' })}
+                onChange={(e) => setFormData({ 
+                  ...formData, 
+                  minimumPrice: e.target.value === '' ? '' : e.target.value
+                })}
               />
             </div>
           </div>
@@ -169,6 +247,7 @@ const CreateBid = () => {
             <label className="text-sm font-medium">Harvest Date*</label>
             <Input
               type="date"
+              min={getMinDate()}
               value={formData.harvestDate}
               onChange={(e) => setFormData({ ...formData, harvestDate: e.target.value })}
             />

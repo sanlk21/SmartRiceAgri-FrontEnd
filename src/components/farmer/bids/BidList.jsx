@@ -27,8 +27,10 @@ const BidList = () => {
 
     try {
       setLoading(true);
+      console.log('Fetching bids for farmer NIC:', user.nic); // Debug log
       const data = await bidService.getFarmerBids(user.nic);
-      setBids(data);
+      console.log('Fetched bids:', data); // Debug log
+      setBids(data || []); // Ensure we always set an array
     } catch (error) {
       console.error('Error fetching bids:', error);
       toast({
@@ -36,19 +38,31 @@ const BidList = () => {
         title: 'Error',
         description: error.message || 'Failed to fetch bids'
       });
+      setBids([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBids();
+    if (user?.nic) {
+      fetchBids();
+    }
   }, [user?.nic]);
 
   const handleCancelBid = async (bidId) => {
+    if (!bidId) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Invalid bid ID'
+      });
+      return;
+    }
+
     try {
-      await bidService.cancelBid(user.nic);
-      await fetchBids(); // Refresh the list after cancellation
+      await bidService.cancelBid(bidId); // Fixed: passing bidId instead of user.nic
+      await fetchBids();
       toast({
         title: 'Success',
         description: 'Bid cancelled successfully!'
@@ -79,14 +93,6 @@ const BidList = () => {
     );
   }
 
-  if (!bids.length) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No bids found</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -96,38 +102,50 @@ const BidList = () => {
         </Button>
       </div>
 
-      <div className="grid gap-4">
-        {bids.map((bid) => (
-          <Card key={bid.id}>
-            <CardHeader>
-              <CardTitle>{bid.riceVariety}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p>Quantity: {bid.quantity}kg</p>
-                <p>Minimum Price: {formatPrice(bid.minimumPrice)}/kg</p>
-                <p>Status: {bid.status}</p>
-                <div className="flex space-x-2 mt-4">
-                  <Button
-                    onClick={() => navigate(`/farmer/bids/${bid.id}`)}
-                    variant="outline"
-                  >
-                    View Details
-                  </Button>
-                  {bid.status === 'ACTIVE' && (
+      {!bids.length ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500">No bids found</p>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {bids.map((bid) => (
+            <Card key={bid.id}>
+              <CardHeader>
+                <CardTitle>{bid.riceVariety}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p>Bid ID: {bid.id}</p>
+                  <p>Farmer NIC: {bid.farmerNic}</p>
+                  <p>Quantity: {bid.quantity}kg</p>
+                  <p>Minimum Price: {formatPrice(bid.minimumPrice)}/kg</p>
+                  <p>Status: <span className={`px-2 py-1 rounded ${
+                    bid.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                    bid.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>{bid.status}</span></p>
+                  <div className="flex space-x-2 mt-4">
                     <Button
-                      variant="destructive"
-                      onClick={() => handleCancelBid(bid.id)}
+                      onClick={() => navigate(`/farmer/bids/${bid.id}`)}
+                      variant="outline"
                     >
-                      Cancel Bid
+                      View Details
                     </Button>
-                  )}
+                    {bid.status === 'ACTIVE' && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleCancelBid(bid.id)}
+                      >
+                        Cancel Bid
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
