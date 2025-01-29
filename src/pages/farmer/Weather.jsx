@@ -52,22 +52,39 @@ const Weather = () => {
   } = useWeather();
 
   const getCityName = (locationId) => {
-    const location = locationData.find(loc => loc.id === locationId);
+    const location = locationData.find(loc => loc.id === parseInt(locationId));
     return location ? location.name : '';
   };
 
   const getUniqueForecastsByDate = (forecasts) => {
     if (!forecasts) return [];
     
+    // Get today's date at midnight for comparison
+    const startDate = new Date();
+    startDate.setHours(0, 0, 0, 0);
+    
+    const sevenDaysFromNow = new Date(startDate);
+    sevenDaysFromNow.setDate(startDate.getDate() + 6);
+    
+    // Filter forecasts within the 7-day window
+    const validForecasts = forecasts.filter(forecast => {
+      const forecastDate = new Date(forecast.predictionDate);
+      forecastDate.setHours(0, 0, 0, 0);
+      return forecastDate >= startDate && forecastDate <= sevenDaysFromNow;
+    });
+
+    // Group by date and take the first forecast for each day
     const uniqueForecasts = {};
-    forecasts.forEach(forecast => {
+    validForecasts.forEach(forecast => {
       const date = new Date(forecast.predictionDate).toDateString();
       if (!uniqueForecasts[date]) {
         uniqueForecasts[date] = forecast;
       }
     });
     
-    return Object.values(uniqueForecasts);
+    // Convert to array and sort by date
+    return Object.values(uniqueForecasts)
+      .sort((a, b) => new Date(a.predictionDate) - new Date(b.predictionDate));
   };
 
   const getWeatherIcon = (type) => {
@@ -89,6 +106,7 @@ const Weather = () => {
 
   const uniqueForecasts = getUniqueForecastsByDate(weeklyForecast);
   const currentCity = getCityName(selectedLocation);
+  const hasFullWeek = uniqueForecasts.length === 7;
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -144,42 +162,52 @@ const Weather = () => {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {uniqueForecasts.map((day, index) => (
-                <Card key={index} className="overflow-hidden">
-                  <CardHeader className="bg-gray-50 p-4">
-                    <div className="text-lg font-semibold">
-                      {new Date(day.predictionDate).toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      {getWeatherIcon(day.weatherType)}
-                      <div className="text-2xl font-bold">{day.temperature.toFixed(1)}°C</div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <CloudRain className="h-4 w-4 text-blue-500" />
-                        <span>Rain: {(day.rainfallProbability * 100).toFixed(0)}%</span>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {uniqueForecasts.map((day, index) => (
+                  <Card key={index} className="overflow-hidden">
+                    <CardHeader className="bg-gray-50 p-4">
+                      <div className="text-lg font-semibold">
+                        {new Date(day.predictionDate).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Wind className="h-4 w-4 text-gray-500" />
-                        <span>Wind: {day.windSpeed.toFixed(1)} km/h</span>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center mb-4">
+                        {getWeatherIcon(day.weatherType)}
+                        <div className="text-2xl font-bold">{day.temperature.toFixed(1)}°C</div>
                       </div>
-                      <div className="mt-2 pt-2 border-t">
-                        <span className="text-sm font-medium text-gray-600">
-                          {day.weatherType.replace('_', ' ')}
-                        </span>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <CloudRain className="h-4 w-4 text-blue-500" />
+                          <span>Rain: {(day.rainfallProbability * 100).toFixed(0)}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Wind className="h-4 w-4 text-gray-500" />
+                          <span>Wind: {day.windSpeed.toFixed(1)} km/h</span>
+                        </div>
+                        <div className="mt-2 pt-2 border-t">
+                          <span className="text-sm font-medium text-gray-600">
+                            {day.weatherType.replace('_', ' ')}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {!hasFullWeek && !loading && (
+                <Alert className="mt-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Some forecast data is missing. Please try refreshing.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
