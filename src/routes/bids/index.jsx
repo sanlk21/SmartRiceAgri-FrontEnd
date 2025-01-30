@@ -10,7 +10,6 @@ import BidDetails from '@/components/farmer/bids/BidDetails';
 import BidList from '@/components/farmer/bids/BidList';
 import CreateBid from '@/components/farmer/bids/CreateBid';
 import { useAuth } from '@/hooks/useAuth';
-import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 const BidRoutes = () => {
@@ -30,8 +29,8 @@ const BidRoutes = () => {
       {isFarmer && (
         <>
           <Route path="create" element={<CreateBid />} />
-          <Route path="my-bids" element={<BidList />} />
-          <Route path=":farmerNic" element={<BidDetails />} />
+          <Route path="list" element={<BidList />} />
+          <Route path=":bidId" element={<BidDetails />} />
         </>
       )}
 
@@ -61,13 +60,15 @@ const BidRoutes = () => {
       <Route
         path="/"
         element={
-          <Navigate 
+          <Navigate
             to={
-              isAdmin ? "dashboard" : 
-              isFarmer ? "my-bids" : 
-              "available"
-            } 
-            replace 
+              isAdmin
+                ? "dashboard"
+                : isFarmer
+                ? "list"
+                : "available"
+            }
+            replace
           />
         }
       />

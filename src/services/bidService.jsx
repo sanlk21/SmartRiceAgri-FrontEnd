@@ -135,20 +135,24 @@ class BidService {
             throw this.handleError(error);
         }
     }
-
-    // Accept a bid offer
-    async acceptBidOffer(bidId, buyerNic) {
-        try {
-            if (!bidId || !buyerNic) {
-                throw new Error('Bid ID and Buyer NIC are required');
-            }
-
-            const response = await axios.put(`${this.baseURL}/${bidId}/accept`, { buyerNic });
-            return response.data;
-        } catch (error) {
-            throw this.handleError(error);
+// In your BidService class
+async acceptBidOffer(bidId, buyerNic) {
+    try {
+        if (!bidId || !buyerNic) {
+            throw new Error('Bid ID and Buyer NIC are required');
         }
+
+        const response = await axios.post(`/bids/${bidId}/accept-offer`, null, {
+            params: { buyerNic }
+        });
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 500) {
+            throw new Error('Server error while processing the offer. Please try again.');
+        }
+        throw this.handleError(error);
     }
+}
 
     // Cancel a bid
     async cancelBid(bidId) {
