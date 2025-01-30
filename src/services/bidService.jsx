@@ -26,39 +26,45 @@ class BidService {
         }
     }
 
-    // Get all bids for admin with filters
-    async getAllBids({ signal, ...filters } = {}) {
-        try {
-            const params = new URLSearchParams();
-            
-            if (filters.status && filters.status !== 'all') {
-                params.append('status', filters.status);
-            }
-            if (filters.dateRange) {
-                const days = parseInt(filters.dateRange);
-                const fromDate = new Date();
-                fromDate.setDate(fromDate.getDate() - days);
-                params.append('fromDate', fromDate.toISOString());
-            }
-            if (filters.searchTerm) {
-                params.append('searchTerm', filters.searchTerm);
-            }
-    
-            const response = await axios.get(`${this.baseURL}/admin/all`, {
-                params,
-                signal
-            });
-    
-            return response.data.map(bid => ({
-                ...bid,
-                buyerNic: bid.winningBuyerNic || '-',
-                winningBidPrice: bid.winningBidAmount || null,
-                createdAt: bid.postedDate ? new Date(bid.postedDate).toLocaleDateString() : 'Invalid Date'
-            }));
-        } catch (error) {
-            throw this.handleError(error);
+   // In BidService class
+async getAllBids({ signal, ...filters } = {}) {
+    try {
+        const params = new URLSearchParams();
+        
+        if (filters.status && filters.status !== 'all') {
+            params.append('status', filters.status);
         }
+        if (filters.dateRange) {
+            const days = parseInt(filters.dateRange);
+            const fromDate = new Date();
+            fromDate.setDate(fromDate.getDate() - days);
+            params.append('fromDate', fromDate.toISOString());
+        }
+        if (filters.searchTerm) {
+            params.append('searchTerm', filters.searchTerm);
+        }
+
+        const response = await axios.get(`${this.baseURL}/admin/all`, {
+            params,
+            signal
+        });
+
+        return response.data.map(bid => ({
+            ...bid,
+            // For admin, show all bid offers and their buyers
+            bidOffers: bid.bidOffers || [],
+            // Show buyer details for completed bids
+            buyerNic: bid.winningBuyerNic || 
+                     (bid.bidOffers && bid.bidOffers.length > 0 
+                        ? bid.bidOffers.map(offer => offer.buyerNic).join(", ") 
+                        : '-'),
+            winningBidPrice: bid.winningBidAmount || null,
+            createdAt: bid.postedDate ? new Date(bid.postedDate).toLocaleDateString() : 'Invalid Date'
+        }));
+    } catch (error) {
+        throw this.handleError(error);
     }
+}
 
     // Get active bids with filters
     async getFilteredBids(filters = {}) {

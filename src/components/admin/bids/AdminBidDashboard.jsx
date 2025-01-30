@@ -39,73 +39,93 @@ const AdminBidDashboard = () => {
     }
   };
 
-  const columns = [
-    {
+  // In AdminBidDashboard component
+const columns = [
+  {
       accessorKey: "id",
       header: "ID"
-    },
-    {
+  },
+  {
       accessorKey: "farmerNic",
       header: "Farmer NIC"
-    },
-    {
+  },
+  {
       accessorKey: "buyerNic",
-      header: "Buyer NIC",
-      cell: ({ row }) => row.original.buyerNic || '-'
-    },
-    {
+      header: "Buyer NIC(s)",
+      cell: ({ row }) => {
+          const bid = row.original;
+          if (bid.status === 'COMPLETED' && bid.winningBuyerNic) {
+              return <span className="font-medium text-blue-600">{bid.winningBuyerNic}</span>;
+          }
+          if (bid.bidOffers && bid.bidOffers.length > 0) {
+              return (
+                  <div className="space-y-1">
+                      {bid.bidOffers.map((offer, index) => (
+                          <div key={index} className="text-sm">
+                              {offer.buyerNic} 
+                              <span className="text-gray-500 text-xs ml-2">
+                                  (Rs. {offer.bidAmount.toFixed(2)})
+                              </span>
+                          </div>
+                      ))}
+                  </div>
+              );
+          }
+          return '-';
+      }
+  },
+  {
       accessorKey: "riceVariety",
       header: "Rice Variety"
-    },
-    {
+  },
+  {
       accessorKey: "quantity",
       header: "Quantity (kg)",
       cell: ({ row }) => row.original.quantity.toLocaleString()
-    },
-    {
+  },
+  {
       accessorKey: "minimumPrice",
       header: "Min. Price",
       cell: ({ row }) => (
-        <span>Rs. {row.original.minimumPrice.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        })}</span>
+          <span>Rs. {row.original.minimumPrice.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+          })}</span>
       )
-    },
-    {
+  },
+  {
       accessorKey: "winningBidPrice",
       header: "Winning Bid",
       cell: ({ row }) => {
-        if (row.original.status === 'COMPLETED' && row.original.winningBidPrice) {
-          return <span>Rs. {row.original.winningBidPrice.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          })}</span>;
-        }
-        return '-';
+          if (row.original.status === 'COMPLETED' && row.original.winningBidPrice) {
+              return <span className="font-medium text-blue-600">Rs. {row.original.winningBidPrice.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+              })}</span>;
+          }
+          return '-';
       }
-    },
-    {
+  },
+  {
       accessorKey: "createdAt",
-      header: "Created Date",
-      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString()
-    },
-    {
+      header: "Created Date"
+  },
+  {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <span className={`
-          px-2 py-1 rounded text-sm font-medium
-          ${row.original.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : ''}
-          ${row.original.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : ''}
-          ${row.original.status === 'REJECTED' ? 'bg-red-100 text-red-800' : ''}
-          ${row.original.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' : ''}
-        `}>
-          {row.original.status}
-        </span>
+          <span className={`
+              px-2 py-1 rounded text-sm font-medium
+              ${row.original.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : ''}
+              ${row.original.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : ''}
+              ${row.original.status === 'REJECTED' ? 'bg-red-100 text-red-800' : ''}
+              ${row.original.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' : ''}
+          `}>
+              {row.original.status}
+          </span>
       )
-    }
-  ];
+  }
+];
 
   return (
     <>
