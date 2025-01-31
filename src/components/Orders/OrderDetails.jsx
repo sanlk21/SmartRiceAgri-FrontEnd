@@ -1,4 +1,4 @@
-// src/components/orders/OrderDetails.jsx
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -12,6 +12,7 @@ export default function OrderDetails() {
   const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
 
   useEffect(() => {
     fetchOrderDetails();
@@ -61,7 +62,16 @@ export default function OrderDetails() {
           </div>
 
           {user?.role === 'BUYER' && order.status === 'PENDING_PAYMENT' && (
-            <PaymentForm order={order} onSuccess={fetchOrderDetails} />
+            <>
+              <Button onClick={() => setShowPaymentForm(true)}>Pay Now</Button>
+              {showPaymentForm && (
+                <PaymentForm
+                  order={order}
+                  onClose={() => setShowPaymentForm(false)}
+                  onSuccess={fetchOrderDetails}
+                />
+              )}
+            </>
           )}
         </CardContent>
       </Card>
