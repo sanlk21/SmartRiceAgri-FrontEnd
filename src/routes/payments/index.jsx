@@ -8,8 +8,8 @@ import AdminPaymentDetails from '@/components/Payment/AdminPaymentDetails';
 
 // Buyer Components
 import BuyerPaymentDashboard from '@/components/Payment/BuyerPaymentDashboard';
+import PaymentOptions from '@/components/Payment/PaymentOptions';
 import PaymentStatus from '@/components/Payment/PaymentStatus';
-import PaymentOptions from '@/components/Payment/PendingPayments/PaymentOptions';
 
 // Farmer Components
 import FarmerPaymentDashboard from '@/components/Payment/FarmerPaymentDashboard';

@@ -1,4 +1,4 @@
-import { paymentApi } from '@/api/paymentApi';
+import { paymentService } from '@/services/paymentService';
 import PropTypes from 'prop-types';
 import { createContext, useContext, useReducer } from 'react';
 
@@ -32,6 +32,8 @@ const paymentReducer = (state, action) => {
             ? action.payload
             : state.currentPayment
       };
+    case 'CLEAR_ERROR':
+      return { ...state, error: null };
     default:
       return state;
   }
@@ -42,12 +44,17 @@ export const PaymentProvider = ({ children }) => {
 
   const initializePayment = async (orderId, paymentMethod) => {
     dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+    
     try {
-      const payment = await paymentApi.initializePayment(orderId, paymentMethod);
+      const payment = await paymentService.initializePayment(orderId, paymentMethod);
       dispatch({ type: 'SET_CURRENT_PAYMENT', payload: payment });
       return payment;
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
+      const errorMessage = error.name === 'PaymentError' 
+        ? error.message 
+        : 'Failed to initialize payment. Please try again.';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
       throw error;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -56,29 +63,34 @@ export const PaymentProvider = ({ children }) => {
 
   const processPayment = async (paymentId, paymentMethod, paymentData) => {
     dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
     try {
       let updatedPayment;
 
       switch (paymentMethod) {
         case 'BANK_TRANSFER':
-          updatedPayment = await paymentApi.processBankTransfer(
+          updatedPayment = await paymentService.processBankTransfer(
             paymentId,
             paymentData,
-            paymentData.proofDocument
+            paymentData.proofFile
           );
           break;
+
         case 'CASH_ON_DELIVERY':
-          updatedPayment = await paymentApi.processCashOnDelivery(
+          updatedPayment = await paymentService.processCashOnDelivery(
             paymentId,
             paymentData
           );
           break;
+
         case 'ONLINE_PAYMENT':
-          updatedPayment = await paymentApi.processOnlinePayment(
+          updatedPayment = await paymentService.processOnlinePayment(
             paymentId,
             paymentData
           );
           break;
+
         default:
           throw new Error('Invalid payment method');
       }
@@ -86,24 +98,32 @@ export const PaymentProvider = ({ children }) => {
       dispatch({ type: 'UPDATE_PAYMENT', payload: updatedPayment });
       return updatedPayment;
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
+      const errorMessage = error.name === 'PaymentError'
+        ? error.message
+        : 'Failed to process payment. Please try again.';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
       throw error;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
-  const fetchPayments = async (userRole, userNic) => {
+  const fetchPayments = async (userRole, userNic, filters = {}) => {
     dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
     try {
       const payments = userRole === 'BUYER'
-        ? await paymentApi.getBuyerPayments(userNic)
-        : await paymentApi.getFarmerPayments(userNic);
+        ? await paymentService.getBuyerPayments(userNic, filters)
+        : await paymentService.getFarmerPayments(userNic, filters);
       
       dispatch({ type: 'SET_PAYMENTS', payload: payments });
       return payments;
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
+      const errorMessage = error.name === 'PaymentError'
+        ? error.message
+        : 'Failed to fetch payments. Please try again.';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
       throw error;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -112,12 +132,51 @@ export const PaymentProvider = ({ children }) => {
 
   const fetchPaymentDetails = async (paymentId) => {
     dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
     try {
-      const payment = await paymentApi.getPayment(paymentId);
+      const payment = await paymentService.getPayment(paymentId);
       dispatch({ type: 'SET_CURRENT_PAYMENT', payload: payment });
       return payment;
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
+      const errorMessage = error.name === 'PaymentError'
+        ? error.message
+        : 'Failed to fetch payment details. Please try again.';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+
+  const downloadPaymentProof = async (paymentId) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
+    try {
+      return await paymentService.downloadPaymentProof(paymentId);
+    } catch (error) {
+      const errorMessage = error.name === 'PaymentError'
+        ? error.message
+        : 'Failed to download payment proof. Please try again.';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+
+  const getPaymentStatistics = async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'CLEAR_ERROR' });
+
+    try {
+      return await paymentService.getPaymentStatistics();
+    } catch (error) {
+      const errorMessage = error.name === 'PaymentError'
+        ? error.message
+        : 'Failed to fetch payment statistics. Please try again.';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
       throw error;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -129,7 +188,9 @@ export const PaymentProvider = ({ children }) => {
     initializePayment,
     processPayment,
     fetchPayments,
-    fetchPaymentDetails
+    fetchPaymentDetails,
+    downloadPaymentProof,
+    getPaymentStatistics
   };
 
   return (

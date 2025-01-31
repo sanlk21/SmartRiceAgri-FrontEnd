@@ -13,7 +13,7 @@ export const paymentService = {
     // Initialize a new payment for an order
     initializePayment: async (orderId, paymentMethod) => {
         try {
-            const response = await axios.post('/api/payments/initialize', {
+            const response = await axios.post('/payments/initialize', {
                 orderId,
                 paymentMethod
             });
@@ -40,7 +40,7 @@ export const paymentService = {
             }
 
             const response = await axios.post(
-                `/api/payments/${paymentId}/bank-transfer`,
+                `/payments/${paymentId}/bank-transfer`,
                 formData,
                 {
                     headers: {
@@ -62,7 +62,7 @@ export const paymentService = {
     processCashOnDelivery: async (paymentId, deliveryData) => {
         try {
             const response = await axios.post(
-                `/api/payments/${paymentId}/cash-on-delivery`,
+                `/payments/${paymentId}/cash-on-delivery`,
                 deliveryData
             );
             return response.data;
@@ -79,7 +79,7 @@ export const paymentService = {
     processOnlinePayment: async (paymentId, paymentData) => {
         try {
             const response = await axios.post(
-                `/api/payments/${paymentId}/online-payment`,
+                `/payments/${paymentId}/online-payment`,
                 paymentData
             );
             return response.data;
@@ -95,7 +95,7 @@ export const paymentService = {
     // Get payment details
     getPayment: async (paymentId) => {
         try {
-            const response = await axios.get(`/api/payments/${paymentId}`);
+            const response = await axios.get(`/payments/${paymentId}`);
             return response.data;
         } catch (error) {
             throw new PaymentError(
@@ -119,7 +119,7 @@ export const paymentService = {
             });
 
             const response = await axios.get(
-                `/api/payments/buyer/${buyerNic}?${params}`
+                `/payments/buyer/${buyerNic}?${params}`
             );
             return response.data;
         } catch (error) {
@@ -144,7 +144,7 @@ export const paymentService = {
             });
 
             const response = await axios.get(
-                `/api/payments/farmer/${farmerNic}?${params}`
+                `/payments/farmer/${farmerNic}?${params}`
             );
             return response.data;
         } catch (error) {
@@ -160,7 +160,7 @@ export const paymentService = {
     downloadPaymentProof: async (paymentId) => {
         try {
             const response = await axios.get(
-                `/api/payments/${paymentId}/proof`,
+                `/payments/${paymentId}/proof`,
                 {
                     responseType: 'blob'
                 }
@@ -187,7 +187,7 @@ export const paymentService = {
                 sort: filters.sort || 'createdAt,desc'
             });
 
-            const response = await axios.get(`/api/payments/admin/all?${params}`);
+            const response = await axios.get(`/payments/admin/all?${params}`);
             return response.data;
         } catch (error) {
             throw new PaymentError(
@@ -209,7 +209,7 @@ export const paymentService = {
             });
 
             const response = await axios.get(
-                `/api/payments/admin/status/${status}?${params}`
+                `/payments/admin/status/${status}?${params}`
             );
             return response.data;
         } catch (error) {
@@ -224,7 +224,7 @@ export const paymentService = {
     // Admin: Get payment statistics
     getPaymentStatistics: async () => {
         try {
-            const response = await axios.get('/api/payments/admin/statistics');
+            const response = await axios.get('/payments/admin/statistics');
             return response.data;
         } catch (error) {
             throw new PaymentError(
@@ -238,7 +238,7 @@ export const paymentService = {
     // Admin: Manually complete a payment
     completePayment: async (paymentId) => {
         try {
-            const response = await axios.post(`/api/payments/admin/${paymentId}/complete`);
+            const response = await axios.post(`/payments/admin/${paymentId}/complete`);
             return response.data;
         } catch (error) {
             throw new PaymentError(
@@ -253,7 +253,7 @@ export const paymentService = {
     failPayment: async (paymentId, reason) => {
         try {
             const response = await axios.post(
-                `/api/payments/admin/${paymentId}/fail`,
+                `/payments/admin/${paymentId}/fail`,
                 null,
                 { params: { reason } }
             );
