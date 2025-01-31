@@ -11,14 +11,13 @@ class BidService {
                 throw new Error('Farmer NIC is required');
             }
     
-            // Convert date string to ISO format
             const harvestDate = new Date(bidCreateRequest.harvestDate);
-            harvestDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+            harvestDate.setHours(12, 0, 0, 0);
     
             const response = await axios.post(this.baseURL, {
                 ...bidCreateRequest,
                 harvestDate: harvestDate.toISOString(),
-                status: 'ACTIVE' // Changed from PENDING to ACTIVE
+                status: 'ACTIVE'
             });
             return response.data;
         } catch (error) {
@@ -26,47 +25,43 @@ class BidService {
         }
     }
 
-   // In BidService class
-async getAllBids({ signal, ...filters } = {}) {
-    try {
-        const params = new URLSearchParams();
-        
-        if (filters.status && filters.status !== 'all') {
-            params.append('status', filters.status);
-        }
-        if (filters.dateRange) {
-            const days = parseInt(filters.dateRange);
-            const fromDate = new Date();
-            fromDate.setDate(fromDate.getDate() - days);
-            params.append('fromDate', fromDate.toISOString());
-        }
-        if (filters.searchTerm) {
-            params.append('searchTerm', filters.searchTerm);
-        }
+    async getAllBids({ signal, ...filters } = {}) {
+        try {
+            const params = new URLSearchParams();
+            
+            if (filters.status && filters.status !== 'all') {
+                params.append('status', filters.status);
+            }
+            if (filters.dateRange) {
+                const days = parseInt(filters.dateRange);
+                const fromDate = new Date();
+                fromDate.setDate(fromDate.getDate() - days);
+                params.append('fromDate', fromDate.toISOString());
+            }
+            if (filters.searchTerm) {
+                params.append('searchTerm', filters.searchTerm);
+            }
 
-        const response = await axios.get(`${this.baseURL}/admin/all`, {
-            params,
-            signal
-        });
+            const response = await axios.get(`${this.baseURL}/admin/all`, {
+                params,
+                signal
+            });
 
-        return response.data.map(bid => ({
-            ...bid,
-            // For admin, show all bid offers and their buyers
-            bidOffers: bid.bidOffers || [],
-            // Show buyer details for completed bids
-            buyerNic: bid.winningBuyerNic || 
-                     (bid.bidOffers && bid.bidOffers.length > 0 
-                        ? bid.bidOffers.map(offer => offer.buyerNic).join(", ") 
-                        : '-'),
-            winningBidPrice: bid.winningBidAmount || null,
-            createdAt: bid.postedDate ? new Date(bid.postedDate).toLocaleDateString() : 'Invalid Date'
-        }));
-    } catch (error) {
-        throw this.handleError(error);
+            return response.data.map(bid => ({
+                ...bid,
+                bidOffers: bid.bidOffers || [],
+                buyerNic: bid.winningBuyerNic || 
+                         (bid.bidOffers && bid.bidOffers.length > 0 
+                            ? bid.bidOffers.map(offer => offer.buyerNic).join(", ") 
+                            : '-'),
+                winningBidPrice: bid.winningBidAmount || null,
+                createdAt: bid.postedDate ? new Date(bid.postedDate).toLocaleDateString() : 'Invalid Date'
+            }));
+        } catch (error) {
+            throw this.handleError(error);
+        }
     }
-}
 
-    // Get active bids with filters
     async getFilteredBids(filters = {}) {
         try {
             const cleanFilters = Object.entries(filters).reduce((acc, [key, value]) => {
@@ -85,14 +80,12 @@ async getAllBids({ signal, ...filters } = {}) {
         }
     }
 
-    // Get bids for a specific farmer
     async getFarmerBids(farmerNic) {
         try {
             if (!farmerNic) {
                 throw new Error('Farmer NIC is required');
             }
 
-            console.log('Fetching bids for farmer:', farmerNic);
             const response = await axios.get(`${this.baseURL}/farmer/${farmerNic}`);
             return response.data;
         } catch (error) {
@@ -100,7 +93,6 @@ async getAllBids({ signal, ...filters } = {}) {
         }
     }
 
-    // Get winning bids for a buyer
     async getBuyerWinningBids(buyerNic) {
         try {
             if (!buyerNic) {
@@ -110,11 +102,11 @@ async getAllBids({ signal, ...filters } = {}) {
             const response = await axios.get(`${this.baseURL}/buyer/${buyerNic}/winning`);
             return response.data;
         } catch (error) {
+            console.error('Error in getBuyerWinningBids:', error);
             throw this.handleError(error);
         }
     }
 
-    // Get specific bid details
     async getBidDetails(bidId) {
         try {
             if (!bidId) {
@@ -128,7 +120,6 @@ async getAllBids({ signal, ...filters } = {}) {
         }
     }
 
-    // Place a bid offer
     async placeBid(bidOfferRequest) {
         try {
             if (!bidOfferRequest.bidId || !bidOfferRequest.buyerNic || !bidOfferRequest.bidAmount) {
@@ -141,26 +132,25 @@ async getAllBids({ signal, ...filters } = {}) {
             throw this.handleError(error);
         }
     }
-// In your BidService class
-async acceptBidOffer(bidId, buyerNic) {
-    try {
-        if (!bidId || !buyerNic) {
-            throw new Error('Bid ID and Buyer NIC are required');
-        }
 
-        const response = await axios.post(`/bids/${bidId}/accept-offer`, null, {
-            params: { buyerNic }
-        });
-        return response.data;
-    } catch (error) {
-        if (error.response?.status === 500) {
-            throw new Error('Server error while processing the offer. Please try again.');
+    async acceptBidOffer(bidId, buyerNic) {
+        try {
+            if (!bidId || !buyerNic) {
+                throw new Error('Bid ID and Buyer NIC are required');
+            }
+
+            const response = await axios.post(`${this.baseURL}/${bidId}/accept-offer`, null, {
+                params: { buyerNic }
+            });
+            return response.data;
+        } catch (error) {
+            if (error.response?.status === 500) {
+                throw new Error('Server error while processing the offer. Please try again.');
+            }
+            throw this.handleError(error);
         }
-        throw this.handleError(error);
     }
-}
 
-    // Cancel a bid
     async cancelBid(bidId) {
         try {
             if (!bidId) {
@@ -174,7 +164,6 @@ async acceptBidOffer(bidId, buyerNic) {
         }
     }
 
-    // Admin: Update bid status
     async updateBidStatus(bidId, status) {
         try {
             if (!bidId || !status) {
@@ -190,7 +179,6 @@ async acceptBidOffer(bidId, buyerNic) {
         }
     }
 
-    // Admin: Force complete a bid
     async forceCompleteBid(bidId, buyerNic, amount) {
         try {
             if (!bidId || !buyerNic || !amount) {
@@ -206,7 +194,6 @@ async acceptBidOffer(bidId, buyerNic) {
         }
     }
 
-    // Admin: Get bid statistics
     async getBidStatistics() {
         try {
             const response = await axios.get(`${this.baseURL}/admin/statistics`);
@@ -216,11 +203,9 @@ async acceptBidOffer(bidId, buyerNic) {
         }
     }
 
-    // Standardized error handling
     handleError(error) {
         console.error('API Error:', error.response || error);
 
-        // Handle different types of errors
         if (error.response?.data?.message) {
             return new Error(error.response.data.message);
         }
@@ -233,7 +218,6 @@ async acceptBidOffer(bidId, buyerNic) {
             return new Error('Request timeout - please try again.');
         }
 
-        // Specific error handling for common HTTP status codes
         if (error.response?.status === 400) {
             return new Error('Invalid request. Please check your input.');
         }
@@ -261,7 +245,6 @@ async acceptBidOffer(bidId, buyerNic) {
         return new Error(error.message || 'An unexpected error occurred.');
     }
 
-    // Format bid data for display
     formatBidData(bid) {
         return {
             ...bid,
