@@ -1,138 +1,138 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/AuthContext';
 import { usePayment } from '@/context/PaymentContext';
-import { ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { AlertCircle, CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import BankTransfer from './PaymentMethods/BankTransfer';
-import CashOnDelivery from './PaymentMethods/CashOnDelivery';
-import OnlinePayment from './PaymentMethods/OnlinePayment';
 
-const ProcessPayment = () => {
+const PaymentProcessing = () => {
   const { paymentId } = useParams();
   const navigate = useNavigate();
-  const { fetchPaymentDetails, processPayment } = usePayment();
-  const [payment, setPayment] = useState(null);
+  const { user } = useAuth();
+  const { processPayment, fetchPaymentDetails } = usePayment();
+  const [status, setStatus] = useState('PROCESSING');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [processing, setProcessing] = useState(false);
+
+  const checkPaymentStatus = useCallback(async () => {
+    try {
+      const payment = await fetchPaymentDetails(paymentId);
+      setStatus(payment.status);
+
+      if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(payment.status)) {
+        // Payment reached a final state
+        setTimeout(() => {
+          navigate(`/payments/${user.role.toLowerCase()}`);
+        }, 3000);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error checking payment status",
+        description: error.message
+      });
+      return true; // Stop polling on error
+    }
+  }, [paymentId, navigate, user.role, fetchPaymentDetails]);
 
   useEffect(() => {
-    const loadPayment = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchPaymentDetails(paymentId);
-        
-        // Redirect if payment is not pending
-        if (data.status !== 'PENDING_PAYMENT') {
-          navigate(`/payments/buyer/payments/${paymentId}/status`, { replace: true });
-          return;
-        }
-        
-        setPayment(data);
-      } catch (err) {
-        setError(err.message || 'Failed to load payment details');
-      } finally {
+    let interval;
+
+    const pollPaymentStatus = async () => {
+      const shouldStop = await checkPaymentStatus();
+      if (shouldStop) {
+        clearInterval(interval);
         setLoading(false);
       }
     };
 
-    loadPayment();
-  }, [paymentId, navigate, fetchPaymentDetails]);
+    // Start polling
+    pollPaymentStatus();
+    interval = setInterval(pollPaymentStatus, 5000);
 
-  const handlePayment = async (method, details) => {
-    try {
-      setProcessing(true);
-      const result = await processPayment(paymentId, {
-        method,
-        ...details
-      });
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [checkPaymentStatus]);
 
-      toast({
-        title: "Payment Initiated",
-        description: "Your payment is being processed"
-      });
-
-      navigate(`/payments/buyer/payments/${paymentId}/status`, {
-        replace: true,
-        state: { payment: result }
-      });
-    } catch (err) {
-      toast({
-        variant: "destructive",
-        title: "Payment Failed",
-        description: err.message || "Failed to process payment"
-      });
-      setError(err.message || 'Failed to process payment');
-    } finally {
-      setProcessing(false);
+  const getStatusContent = () => {
+    switch (status) {
+      case 'PROCESSING':
+        return {
+          title: 'Processing Payment',
+          description: 'Please wait while we process your payment...',
+          icon: <Loader2 className="h-12 w-12 animate-spin text-primary" />,
+          className: 'text-primary'
+        };
+      case 'COMPLETED':
+        return {
+          title: 'Payment Successful',
+          description: 'Your payment has been processed successfully.',
+          icon: <CheckCircle2 className="h-12 w-12 text-green-500" />,
+          className: 'text-green-500'
+        };
+      case 'FAILED':
+        return {
+          title: 'Payment Failed',
+          description: 'We could not process your payment. Please try again.',
+          icon: <XCircle className="h-12 w-12 text-red-500" />,
+          className: 'text-red-500'
+        };
+      case 'CANCELLED':
+        return {
+          title: 'Payment Cancelled',
+          description: 'This payment has been cancelled.',
+          icon: <AlertCircle className="h-12 w-12 text-yellow-500" />,
+          className: 'text-yellow-500'
+        };
+      default:
+        return {
+          title: 'Unknown Status',
+          description: 'An error occurred while processing your payment.',
+          icon: <AlertCircle className="h-12 w-12 text-gray-500" />,
+          className: 'text-gray-500'
+        };
     }
   };
 
-  // ... rest of the component remains the same ...
+  const statusContent = getStatusContent();
 
   return (
-    <div className="space-y-6">
-      <Button
-        variant="ghost"
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2"
-        disabled={processing}
-      >
-        <ArrowLeft className="h-4 w-4" /> Back
-      </Button>
+    <Card className="max-w-md mx-auto mt-8">
+      <CardHeader>
+        <CardTitle className={statusContent.className}>
+          {statusContent.title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col items-center space-y-4">
+          {statusContent.icon}
+          <p className="text-gray-600 text-center">
+            {statusContent.description}
+          </p>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Process Payment</CardTitle>
-          <CardDescription>
-            Choose your preferred payment method
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* ... existing content ... */}
-          
-          <Tabs defaultValue="bank_transfer" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="bank_transfer" disabled={processing}>
-                Bank Transfer
-              </TabsTrigger>
-              <TabsTrigger value="cash_delivery" disabled={processing}>
-                Cash on Delivery
-              </TabsTrigger>
-              <TabsTrigger value="online" disabled={processing}>
-                Online Payment
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="bank_transfer">
-              <BankTransfer 
-                payment={payment} 
-                onSubmit={(details) => handlePayment('BANK_TRANSFER', details)}
-                disabled={processing}
-              />
-            </TabsContent>
-            <TabsContent value="cash_delivery">
-              <CashOnDelivery 
-                payment={payment}
-                onSubmit={(details) => handlePayment('CASH_ON_DELIVERY', details)}
-                disabled={processing}
-              />
-            </TabsContent>
-            <TabsContent value="online">
-              <OnlinePayment 
-                payment={payment}
-                onSubmit={(details) => handlePayment('ONLINE_PAYMENT', details)}
-                disabled={processing}
-              />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+          {(['FAILED', 'CANCELLED'].includes(status) && !loading) && (
+            <div className="flex space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/payments/${user.role.toLowerCase()}`)}
+              >
+                Back to Payments
+              </Button>
+              <Button
+                onClick={() => navigate(`/payments/${user.role.toLowerCase()}/${paymentId}/process`)}
+              >
+                Try Again
+              </Button>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
-export default ProcessPayment;
+export default PaymentProcessing;

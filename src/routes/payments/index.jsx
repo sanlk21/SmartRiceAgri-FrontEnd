@@ -1,19 +1,37 @@
+import Loading from '@/components/common/Loading';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-// Admin Components
-import AdminPaymentDashboard from '@/components/Payment/AdminPaymentDashboard';
-import AdminPaymentDetails from '@/components/Payment/AdminPaymentDetails';
+// Lazy load components for better performance
+const AdminPaymentDashboard = lazy(() => import('@/components/Payment/AdminPaymentDashboard'));
+const AdminPaymentDetails = lazy(() => import('@/components/Payment/AdminPaymentDetails'));
+const BuyerPaymentDashboard = lazy(() => import('@/components/Payment/BuyerPaymentDashboard'));
+const PaymentOptions = lazy(() => import('@/components/Payment/PaymentOptions'));
+const PaymentProcessing = lazy(() => import('@/components/Payment/PaymentProcessing'));
+const PaymentStatus = lazy(() => import('@/components/Payment/PaymentStatus'));
+const FarmerPaymentDashboard = lazy(() => import('@/components/Payment/FarmerPaymentDashboard'));
+const FarmerPaymentDetails = lazy(() => import('@/components/Payment/FarmerPaymentDetails'));
 
-// Buyer Components
-import BuyerPaymentDashboard from '@/components/Payment/BuyerPaymentDashboard';
-import PaymentOptions from '@/components/Payment/PaymentOptions';
-import PaymentStatus from '@/components/Payment/PaymentStatus';
-
-// Farmer Components
-import FarmerPaymentDashboard from '@/components/Payment/FarmerPaymentDashboard';
-import FarmerPaymentDetails from '@/components/Payment/FarmerPaymentDetails';
+// Route configurations by role
+const routeConfig = {
+  ADMIN: [
+    { path: "", element: <AdminPaymentDashboard /> },
+    { path: ":paymentId", element: <AdminPaymentDetails /> }
+  ],
+  BUYER: [
+    { path: "", element: <BuyerPaymentDashboard /> },
+    { path: ":paymentId/process", element: <PaymentOptions /> },
+    { path: ":paymentId/processing", element: <PaymentProcessing /> },
+    { path: ":paymentId/status", element: <PaymentStatus /> },
+    { path: ":paymentId", element: <PaymentStatus showNavigation /> }
+  ],
+  FARMER: [
+    { path: "", element: <FarmerPaymentDashboard /> },
+    { path: ":paymentId", element: <FarmerPaymentDetails /> }
+  ]
+};
 
 const PaymentRoutes = () => {
   const { user } = useAuth();
@@ -22,31 +40,35 @@ const PaymentRoutes = () => {
     return <Navigate to="/login" replace />;
   }
 
+  const rolePrefix = user.role.toLowerCase();
+
+  const renderRoleRoutes = (role) => {
+    return routeConfig[role].map(({ path, element }) => (
+      <Route
+        key={`${role}-${path}`}
+        path={`${rolePrefix}/${path}`}
+        element={
+          <Suspense fallback={<Loading />}>
+            {element}
+          </Suspense>
+        }
+      />
+    ));
+  };
+
   return (
     <Routes>
-      {/* Admin Routes */}
-      <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-        <Route path="admin" element={<AdminPaymentDashboard />} />
-        <Route path="admin/:paymentId" element={<AdminPaymentDetails />} />
+      {/* Role-based route protection */}
+      <Route element={<ProtectedRoute allowedRoles={[user.role]} />}>
+        {/* Role-specific routes */}
+        {renderRoleRoutes(user.role)}
       </Route>
 
-      {/* Buyer Routes */}
-      <Route element={<ProtectedRoute allowedRoles={['BUYER']} />}>
-        <Route path="buyer" element={<BuyerPaymentDashboard />} />
-        <Route path="buyer/payments/:paymentId/process" element={<PaymentOptions />} />
-        <Route path="buyer/payments/:paymentId/status" element={<PaymentStatus />} />
-      </Route>
-
-      {/* Farmer Routes */}
-      <Route element={<ProtectedRoute allowedRoles={['FARMER']} />}>
-        <Route path="farmer" element={<FarmerPaymentDashboard />} />
-        <Route path="farmer/:paymentId" element={<FarmerPaymentDetails />} />
-      </Route>
-
-      {/* Default Redirect */}
-      <Route path="*" element={
-        <Navigate to={`/payments/${user.role.toLowerCase()}`} replace />
-      } />
+      {/* Fallback redirect */}
+      <Route 
+        path="*" 
+        element={<Navigate to={`/payments/${rolePrefix}`} replace />} 
+      />
     </Routes>
   );
 };
