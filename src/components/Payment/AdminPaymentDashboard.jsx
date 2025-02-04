@@ -22,68 +22,101 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { useAuth } from '@/context/AuthContext';
-import { usePayment } from '@/context/PaymentContext';
+} from '@/components/ui/table';
+import { paymentService } from '@/services/paymentService';
 import { format } from 'date-fns';
-import { AlertCircle, Download, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { AlertCircle, Download } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AdminPaymentDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { payments, loading, error, fetchPayments } = usePayment();
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     status: 'all',
     paymentMethod: 'all',
     searchTerm: '',
-    dateRange: '7'
+    dateRange: '7',
+    page: 0,
+    size: 10
   });
 
   useEffect(() => {
-    fetchPayments(user.role, user.nic);
-  }, [user]);
+    const fetchPayments = async () => {
+      try {
+        setLoading(true);
+        const response = await paymentService.getAllPayments({
+          ...filters,
+          // Only include status and paymentMethod if not 'all'
+          ...(filters.status !== 'all' && { status: filters.status }),
+          ...(filters.paymentMethod !== 'all' && { paymentMethod: filters.paymentMethod })
+        });
+        setPayments(Array.isArray(response.content) ? response.content : response);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch payments');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Calculate stats
+    fetchPayments();
+  }, [filters]);
+
+  // Calculate statistics from actual data
   const stats = {
-    totalPayments: payments?.length || 0,
-    totalAmount: payments?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0,
-    pendingPayments: payments?.filter(p => p.status === 'PENDING').length || 0,
-    completedPayments: payments?.filter(p => p.status === 'COMPLETED').length || 0
+    totalPayments: payments.length,
+    totalAmount: payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0),
+    pendingPayments: payments.filter(p => p.status === 'PENDING').length,
+    completedPayments: payments.filter(p => p.status === 'COMPLETED').length
   };
 
-  // Filter payments
-  const filteredPayments = payments?.filter(payment => {
-    if (filters.status !== 'all' && payment.status !== filters.status) return false;
-    if (filters.paymentMethod !== 'all' && payment.paymentMethod !== filters.paymentMethod) return false;
-    if (filters.dateRange !== 'all') {
-      const daysAgo = new Date();
-      daysAgo.setDate(daysAgo.getDate() - parseInt(filters.dateRange));
-      if (new Date(payment.createdAt) < daysAgo) return false;
-    }
-    if (filters.searchTerm) {
-      const searchLower = filters.searchTerm.toLowerCase();
-      return (
-        payment.orderId?.toString().includes(searchLower) ||
-        payment.buyerName?.toLowerCase().includes(searchLower) ||
-        payment.farmerName?.toLowerCase().includes(searchLower) ||
-        payment.status.toLowerCase().includes(searchLower)
-      );
-    }
-    return true;
-  }) || [];
+  // Filter payments based on search term
+  const filteredPayments = payments.filter(payment => {
+    if (!filters.searchTerm) return true;
+    
+    const searchLower = filters.searchTerm.toLowerCase();
+    return (
+      payment.orderId?.toString().includes(searchLower) ||
+      payment.buyerName?.toLowerCase().includes(searchLower) ||
+      payment.farmerName?.toLowerCase().includes(searchLower)
+    );
+  });
 
   const getStatusStyle = (status) => {
     const styles = {
       COMPLETED: 'bg-green-100 text-green-800',
       PENDING: 'bg-yellow-100 text-yellow-800',
       FAILED: 'bg-red-100 text-red-800',
-      PROCESSING: 'bg-blue-100 text-blue-800',
-      CANCELLED: 'bg-gray-100 text-gray-800'
+      PROCESSING: 'bg-blue-100 text-blue-800'
     };
     return styles[status] || 'bg-gray-100 text-gray-800';
   };
+
+  const handleDownloadProof = async (paymentId) => {
+    try {
+      const blob = await paymentService.downloadPaymentProof(paymentId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `payment-proof-${paymentId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Failed to download proof:', err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -119,16 +152,14 @@ const AdminPaymentDashboard = () => {
       <Card>
         <CardHeader>
           <CardTitle>Payment History</CardTitle>
-          <CardDescription>
-            Monitor and manage all system payments
-          </CardDescription>
+          <CardDescription>Monitor and manage all system payments</CardDescription>
         </CardHeader>
         <CardContent>
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Select
+            <Select 
               value={filters.status}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+              onValueChange={(value) => setFilters(prev => ({ ...prev, status: value, page: 0 }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All Statuses" />
@@ -139,13 +170,12 @@ const AdminPaymentDashboard = () => {
                 <SelectItem value="PROCESSING">Processing</SelectItem>
                 <SelectItem value="COMPLETED">Completed</SelectItem>
                 <SelectItem value="FAILED">Failed</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
               </SelectContent>
             </Select>
 
             <Select
               value={filters.paymentMethod}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, paymentMethod: value }))}
+              onValueChange={(value) => setFilters(prev => ({ ...prev, paymentMethod: value, page: 0 }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All Methods" />
@@ -160,10 +190,10 @@ const AdminPaymentDashboard = () => {
 
             <Select
               value={filters.dateRange}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, dateRange: value }))}
+              onValueChange={(value) => setFilters(prev => ({ ...prev, dateRange: value, page: 0 }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Last 7 days" />
+                <SelectValue placeholder="Date Range" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="7">Last 7 days</SelectItem>
@@ -173,23 +203,19 @@ const AdminPaymentDashboard = () => {
               </SelectContent>
             </Select>
 
-            <div className="relative">
-              <Search className="absolute left-2 top-3 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Search payments..."
-                value={filters.searchTerm}
-                onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
-                className="pl-8"
-              />
-            </div>
+            <Input
+              placeholder="Search payments..."
+              value={filters.searchTerm}
+              onChange={(e) => setFilters(prev => ({ 
+                ...prev, 
+                searchTerm: e.target.value,
+                page: 0
+              }))}
+            />
           </div>
 
           {/* Payments Table */}
-          {loading ? (
-            <div className="flex justify-center items-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-            </div>
-          ) : error ? (
+          {error ? (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
@@ -220,7 +246,7 @@ const AdminPaymentDashboard = () => {
                       <TableCell>{format(new Date(payment.createdAt), 'PPP')}</TableCell>
                       <TableCell>{payment.buyerName}</TableCell>
                       <TableCell>{payment.farmerName}</TableCell>
-                      <TableCell>Rs. {payment.amount.toFixed(2)}</TableCell>
+                      <TableCell>Rs. {parseFloat(payment.amount).toFixed(2)}</TableCell>
                       <TableCell>{payment.paymentMethod}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded-full text-sm ${getStatusStyle(payment.status)}`}>
@@ -232,7 +258,7 @@ const AdminPaymentDashboard = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => navigate(`/admin/payments/${payment.id}`)}
+                            onClick={() => navigate(`/payments/admin/${payment.id}`)}
                           >
                             View
                           </Button>
@@ -240,7 +266,7 @@ const AdminPaymentDashboard = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => window.open(`/api/payments/${payment.id}/proof`, '_blank')}
+                              onClick={() => handleDownloadProof(payment.id)}
                             >
                               <Download className="h-4 w-4" />
                             </Button>
