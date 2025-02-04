@@ -18,17 +18,27 @@ export default function AdminOrderManagement() {
    search: ''
  });
 
- useEffect(() => {
-   const loadOrders = async () => {
-     setLoading(true);
-     try {
-       await fetchAdminOrders();
-     } finally {
-       setLoading(false);
-     }
-   };
-   loadOrders();
- }, []);
+// src/components/admin/Orders/AdminOrderManagement.jsx
+useEffect(() => {
+  const loadOrders = async () => {
+    setLoading(true);
+    try {
+      // Make sure both API calls are working
+      const [ordersData, statsData] = await Promise.all([
+        orderApi.getAllOrders(),
+        orderApi.getOrderStatistics()
+      ]);
+      setOrders(ordersData);
+      setStatistics(statsData);
+    } catch (error) {
+      console.error('Error loading orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadOrders();
+}, []);
 
  useEffect(() => {
    if (!state.adminOrders) return;
