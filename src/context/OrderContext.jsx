@@ -1,7 +1,9 @@
+// src/context/OrderContext.jsx
 import React, { createContext, useCallback, useContext, useMemo, useReducer } from 'react';
 import { orderApi } from '../api/orderApi';
 
-const OrderContext = createContext(null);
+// Create the context
+export const OrderContext = createContext(null);
 
 const initialState = {
   orders: [],
