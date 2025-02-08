@@ -1,7 +1,6 @@
 // src/services/notificationService.js
 
-// Remove VITE_API_URL since we're using relative paths with proxy
-const BASE_URL = '/api/notifications';
+//const BASE_URL = '/api/notifications';
 
 export const NotificationType = {
     BID_PLACED: 'BID_PLACED',
@@ -22,101 +21,121 @@ export const NotificationType = {
 class NotificationService {
     async getMyNotifications() {
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`${BASE_URL}/my`, {
                 method: 'GET',
-                credentials: 'include',
-                headers: this.getHeaders()
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             });
 
+            if (response.status === 404) {
+                return [];
+            }
+
             if (!response.ok) {
-                if (response.status === 404) {
-                    return []; // Return empty array if no notifications found
-                }
                 throw new Error('Failed to fetch notifications');
             }
 
-            const text = await response.text(); // First get response as text
-            if (!text) return []; // Return empty array if response is empty
-
-            try {
-                return JSON.parse(text); // Then try to parse as JSON
-            } catch (e) {
-                console.error('Error parsing JSON:', text);
-                return [];
-            }
+            return await response.json();
         } catch (error) {
             console.error('Error in getMyNotifications:', error);
-            return []; // Return empty array on error
+            return [];
         }
     }
 
-    async markAsRead(notificationId) {
+    async createNotification(data) {
         try {
-            const response = await fetch(`${BASE_URL}/${notificationId}/read`, {
-                method: 'PUT',
-                credentials: 'include',
-                headers: this.getHeaders()
+            const token = localStorage.getItem('token');
+            const response = await fetch(BASE_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
             });
 
             if (!response.ok) {
-                throw new Error('Failed to mark notification as read');
+                throw new Error('Failed to create notification');
             }
 
-            const text = await response.text();
-            return text ? JSON.parse(text) : {};
+            return await response.json();
         } catch (error) {
-            console.error('Error in markAsRead:', error);
+            console.error('Error in createNotification:', error);
             throw error;
         }
     }
 
-    async markAllAsRead() {
+    async createBroadcast(data) {
         try {
-            const response = await fetch(`${BASE_URL}/mark-all-read`, {
-                method: 'PUT',
-                credentials: 'include',
-                headers: this.getHeaders()
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${BASE_URL}/broadcast`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: data.title,
+                    description: data.description
+                })
             });
 
             if (!response.ok) {
-                throw new Error('Failed to mark all notifications as read');
+                throw new Error('Failed to create broadcast');
             }
 
-            const text = await response.text();
-            return text ? JSON.parse(text) : {};
+            return await response.json();
         } catch (error) {
-            console.error('Error in markAllAsRead:', error);
+            console.error('Error in createBroadcast:', error);
             throw error;
         }
     }
 
-    async deleteNotification(notificationId) {
+    async getAllBroadcasts() {
         try {
-            const response = await fetch(`${BASE_URL}/${notificationId}`, {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${BASE_URL}/broadcasts`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch broadcasts');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Error in getAllBroadcasts:', error);
+            return [];
+        }
+    }
+
+    async deleteNotification(id) {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${BASE_URL}/${id}`, {
                 method: 'DELETE',
-                credentials: 'include',
-                headers: this.getHeaders()
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             });
 
             if (!response.ok) {
                 throw new Error('Failed to delete notification');
             }
 
-            const text = await response.text();
-            return text ? JSON.parse(text) : {};
+            return true;
         } catch (error) {
             console.error('Error in deleteNotification:', error);
             throw error;
         }
-    }
-
-    getHeaders() {
-        const token = localStorage.getItem('token');
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-        };
     }
 }
 

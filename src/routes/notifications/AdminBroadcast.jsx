@@ -1,48 +1,57 @@
 // src/routes/notifications/AdminBroadcast.jsx
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
-import { notificationService } from '@/services/notificationService';
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { notificationService } from "@/services/notificationService";
+import { useState } from "react";
 
 const AdminBroadcast = () => {
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const onSubmit = async (data) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
     try {
-      await notificationService.createBroadcast({
-        title: data.title,
-        description: data.description
-      });
+      const formData = new FormData(e.target);
+      const data = {
+        title: formData.get('title'),
+        description: formData.get('description')
+      };
+
+      await notificationService.createBroadcast(data);
       
       toast({
-        title: "Broadcast sent",
-        description: "Your message has been broadcast to all users",
+        title: "Success",
+        description: "Broadcast message sent successfully"
       });
       
-      reset();
+      // Reset form
+      e.target.reset();
+
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to send broadcast message",
-        variant: "destructive",
+        variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card>
       <CardHeader>
         <CardTitle>Send Broadcast Message</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Title</label>
+            <label>Title</label>
             <Input
               {...register('title', { required: true })}
               placeholder="Broadcast title"
@@ -50,7 +59,7 @@ const AdminBroadcast = () => {
           </div>
           
           <div className="space-y-2">
-            <label className="text-sm font-medium">Message</label>
+            <label>Message</label>
             <Textarea
               {...register('description', { required: true })}
               placeholder="Enter your broadcast message"
@@ -58,7 +67,10 @@ const AdminBroadcast = () => {
             />
           </div>
 
-          <Button type="submit" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+          >
             {isSubmitting ? 'Sending...' : 'Send Broadcast'}
           </Button>
         </form>
