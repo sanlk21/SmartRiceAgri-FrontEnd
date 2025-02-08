@@ -5,7 +5,15 @@ import websocketService from '@/services/websocketService';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 
-const NotificationContext = createContext(undefined);
+// Create context with default values
+const NotificationContext = createContext({
+  notifications: [],
+  unreadCount: 0,
+  fetchNotifications: () => Promise.resolve(),
+  markAsRead: () => Promise.resolve(),
+  markAllAsRead: () => Promise.resolve(),
+  deleteNotification: () => Promise.resolve()
+});
 
 export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
@@ -18,14 +26,23 @@ export function NotificationProvider({ children }) {
     
     try {
       const data = await notificationService.getMyNotifications();
-      setNotifications(data);
-      setUnreadCount(data.filter(n => !n.read).length);
+      if (Array.isArray(data)) {
+        setNotifications(data);
+        setUnreadCount(data.filter(n => !n.read).length);
+      }
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch notifications",
+        variant: "destructive"
+      });
     }
-  }, [user]);
+  }, [user, toast]);
 
   const handleNewNotification = useCallback((notification) => {
+    if (!notification) return;
+
     setNotifications(prev => [notification, ...prev]);
     setUnreadCount(prev => prev + 1);
     
@@ -37,28 +54,31 @@ export function NotificationProvider({ children }) {
   }, [toast]);
 
   useEffect(() => {
+    let interval;
+    let wsUnsubscribe;
+
     if (user) {
-      // Initialize WebSocket connection
-      websocketService.connect();
-      
-      // Fetch initial notifications
+      // Initial fetch
       fetchNotifications();
 
-      // Set up polling interval
-      const interval = setInterval(fetchNotifications, 30000);
+      // Setup polling
+      interval = setInterval(fetchNotifications, 30000);
 
-      // Set up WebSocket subscription
-      const unsubscribe = websocketService.subscribe('notification', handleNewNotification);
-
-      return () => {
-        clearInterval(interval);
-        unsubscribe();
-        websocketService.disconnect();
-      };
+      // Setup WebSocket
+      websocketService.connect();
+      wsUnsubscribe = websocketService.subscribe('notification', handleNewNotification);
     }
+
+    return () => {
+      if (interval) clearInterval(interval);
+      if (wsUnsubscribe) wsUnsubscribe();
+      websocketService.disconnect();
+    };
   }, [user, fetchNotifications, handleNewNotification]);
 
   const markAsRead = async (notificationId) => {
+    if (!notificationId) return;
+
     try {
       await notificationService.markAsRead(notificationId);
       setNotifications(prev =>
@@ -67,6 +87,11 @@ export function NotificationProvider({ children }) {
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark notification as read",
+        variant: "destructive"
+      });
     }
   };
 
@@ -79,10 +104,17 @@ export function NotificationProvider({ children }) {
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark all notifications as read",
+        variant: "destructive"
+      });
     }
   };
 
   const deleteNotification = async (notificationId) => {
+    if (!notificationId) return;
+
     try {
       await notificationService.deleteNotification(notificationId);
       setNotifications(prev => 
@@ -93,6 +125,11 @@ export function NotificationProvider({ children }) {
       }
     } catch (error) {
       console.error('Error deleting notification:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete notification",
+        variant: "destructive"
+      });
     }
   };
 
@@ -114,8 +151,11 @@ export function NotificationProvider({ children }) {
 
 export function useNotifications() {
   const context = useContext(NotificationContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useNotifications must be used within a NotificationProvider');
   }
   return context;
 }
+
+// Export the context for testing purposes
+export const NotificationContextTest = NotificationContext;
