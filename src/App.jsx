@@ -40,12 +40,14 @@ import UserSupportPage from './pages/support/UserSupportPage';
 import PaymentRoutes from './pages/payments';
 import BidRoutes from './routes/bids';
 import FertilizerRoutes from './routes/fertilizer';
+import NotificationRoutes from './routes/notifications'; // Import NotificationRoutes
 import OrderRoutes from './routes/orders';
 
 // Context Providers
 import { AuthProvider } from './context/AuthContext';
 import { BidProvider } from './context/BidContext';
 import { FertilizerProvider } from './context/FertilizerContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { OrderProvider } from './context/OrderContext';
 import { PaymentProvider } from './context/PaymentContext';
 import { SupportProvider } from './context/SupportContext';
@@ -66,19 +68,21 @@ ErrorBoundaryWrapper.propTypes = {
 const AppProviders = ({ children }) => (
   <ErrorBoundaryWrapper>
     <AuthProvider>
-      <UserProvider>
-        <OrderProvider>
-          <PaymentProvider>
-            <FertilizerProvider>
-              <SupportProvider>
-                <BidProvider>
-                  {children}
-                </BidProvider>
-              </SupportProvider>
-            </FertilizerProvider>
-          </PaymentProvider>
-        </OrderProvider>
-      </UserProvider>
+      <NotificationProvider>
+        <UserProvider>
+          <OrderProvider>
+            <PaymentProvider>
+              <FertilizerProvider>
+                <SupportProvider>
+                  <BidProvider>
+                    {children}
+                  </BidProvider>
+                </SupportProvider>
+              </FertilizerProvider>
+            </PaymentProvider>
+          </OrderProvider>
+        </UserProvider>
+      </NotificationProvider>
     </AuthProvider>
   </ErrorBoundaryWrapper>
 );
@@ -99,7 +103,8 @@ const routeConfig = {
     { path: "bids/*", element: <BidRoutes /> },
     { path: "orders/*", element: <OrderRoutes /> },
     { path: "payments/*", element: <PaymentRoutes /> },
-    { path: "support/*", element: <UserSupportPage /> }
+    { path: "support/*", element: <UserSupportPage /> },
+    { path: "notifications/*", element: <NotificationRoutes /> }  // Added notifications route
   ],
   admin: [
     { path: "dashboard", element: <AdminDashboard /> },
@@ -110,14 +115,16 @@ const routeConfig = {
     { path: "fertilizer/*", element: <FertilizerRoutes /> },
     { path: "orders/*", element: <OrderRoutes /> },
     { path: "payments/*", element: <PaymentRoutes /> },
-    { path: "support/*", element: <AdminSupportDashboard /> }
+    { path: "support/*", element: <AdminSupportDashboard /> },
+    { path: "notifications/*", element: <NotificationRoutes /> }  // Added notifications route
   ],
   buyer: [
     { path: "dashboard", element: <BuyerDashboard /> },
     { path: "bids/*", element: <BidRoutes /> },
     { path: "orders/*", element: <OrderRoutes /> },
     { path: "payments/*", element: <PaymentRoutes /> },
-    { path: "support/*", element: <UserSupportPage /> }
+    { path: "support/*", element: <UserSupportPage /> },
+    { path: "notifications/*", element: <NotificationRoutes /> }  // Added notifications route
   ]
 };
 

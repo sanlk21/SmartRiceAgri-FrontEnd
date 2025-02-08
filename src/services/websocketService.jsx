@@ -1,145 +1,150 @@
 // src/services/websocketService.js
-
 class WebSocketService {
-    constructor() {
+  constructor() {
       this.ws = null;
       this.subscribers = new Map();
       this.reconnectAttempts = 0;
       this.maxReconnectAttempts = 5;
-      this.reconnectTimeout = 3000; // 3 seconds
-    }
-  
-    connect() {
+      this.reconnectTimeout = 3000;
+      this.isConnecting = false;
+  }
+
+  async connect() {
+      if (this.isConnecting) return;
+      this.isConnecting = true;
+
       try {
-        const token = localStorage.getItem('token');
-        const wsUrl = `${import.meta.env.VITE_WS_URL}/ws?token=${token}`;
-        
-        this.ws = new WebSocket(wsUrl);
-        
-        this.ws.onopen = this.handleOpen.bind(this);
-        this.ws.onmessage = this.handleMessage.bind(this);
-        this.ws.onclose = this.handleClose.bind(this);
-        this.ws.onerror = this.handleError.bind(this);
-  
-        return true;
+          const token = localStorage.getItem('token');
+          if (!token) {
+              throw new Error('No authentication token found');
+          }
+
+          const wsUrl = `${import.meta.env.VITE_WS_URL}/ws/notifications?token=${token}`;
+          
+          this.ws = new WebSocket(wsUrl);
+          
+          this.ws.onopen = this.handleOpen.bind(this);
+          this.ws.onmessage = this.handleMessage.bind(this);
+          this.ws.onclose = this.handleClose.bind(this);
+          this.ws.onerror = this.handleError.bind(this);
+
+          // Set a connection timeout
+          setTimeout(() => {
+              if (this.ws.readyState !== WebSocket.OPEN) {
+                  this.ws.close();
+              }
+          }, 10000);
+
+          return new Promise((resolve, reject) => {
+              this.ws.onopen = () => {
+                  this.isConnecting = false;
+                  this.reconnectAttempts = 0;
+                  resolve();
+              };
+              this.ws.onerror = (error) => {
+                  this.isConnecting = false;
+                  reject(error);
+              };
+          });
       } catch (error) {
-        console.error('WebSocket connection failed:', error);
-        return false;
+          this.isConnecting = false;
+          console.error('WebSocket connection failed:', error);
+          throw error;
       }
-    }
-  
-    handleOpen() {
+  }
+
+  handleOpen() {
       console.log('WebSocket connection established');
       this.reconnectAttempts = 0;
       this.subscribeToBidUpdates();
-    }
-  
-    handleMessage(event) {
+      this.subscribeToBroadcasts();
+  }
+
+  handleMessage(event) {
       try {
-        const data = JSON.parse(event.data);
-        
-        // Handle different types of messages
-        switch (data.type) {
-          case 'BID_UPDATE':
-            this.notifySubscribers('bidUpdates', data.payload);
-            break;
-          case 'NEW_BID':
-            this.notifySubscribers('newBids', data.payload);
-            break;
-          case 'BID_EXPIRED':
-            this.notifySubscribers('bidExpired', data.payload);
-            break;
-          case 'BID_WON':
-            this.notifySubscribers('bidWon', data.payload);
-            break;
-          default:
-            console.warn('Unknown message type:', data.type);
-        }
+          const data = JSON.parse(event.data);
+          this.notifySubscribers(data.type, data.payload);
       } catch (error) {
-        console.error('Error handling WebSocket message:', error);
+          console.error('Error handling WebSocket message:', error);
       }
-    }
-  
-    handleClose(event) {
-      console.log('WebSocket connection closed:', event.code, event.reason);
-      this.attemptReconnect();
-    }
-  
-    handleError(error) {
+  }
+
+  handleClose(event) {
+      if (event.code !== 1000) {
+          this.attemptReconnect();
+      }
+  }
+
+  handleError(error) {
       console.error('WebSocket error:', error);
-    }
-  
-    attemptReconnect() {
+      this.ws?.close();
+  }
+
+  attemptReconnect() {
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-        console.error('Max reconnection attempts reached');
-        return;
+          console.error('Max reconnection attempts reached');
+          this.notifySubscribers('error', { message: 'Connection lost' });
+          return;
       }
-  
+
       this.reconnectAttempts++;
+      const delay = this.reconnectTimeout * Math.pow(2, this.reconnectAttempts - 1);
+
       setTimeout(() => {
-        console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-        this.connect();
-      }, this.reconnectTimeout * this.reconnectAttempts);
-    }
-  
-    subscribeToBidUpdates() {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(JSON.stringify({
-          type: 'SUBSCRIBE',
-          channel: 'bid_updates'
-        }));
-      }
-    }
-  
-    subscribe(event, callback) {
+          console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+          this.connect().catch(() => {
+              if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                  this.attemptReconnect();
+              }
+          });
+      }, delay);
+  }
+
+  subscribe(event, callback) {
       if (!this.subscribers.has(event)) {
-        this.subscribers.set(event, new Set());
+          this.subscribers.set(event, new Set());
       }
       this.subscribers.get(event).add(callback);
-  
-      // Return unsubscribe function
-      return () => {
-        const callbacks = this.subscribers.get(event);
-        if (callbacks) {
-          callbacks.delete(callback);
-        }
-      };
-    }
-  
-    notifySubscribers(event, data) {
-      const callbacks = this.subscribers.get(event);
-      if (callbacks) {
-        callbacks.forEach(callback => callback(data));
-      }
-    }
-  
-    disconnect() {
-      if (this.ws) {
-        this.ws.close();
-        this.ws = null;
-      }
-    }
-  
-    // Send bid-related messages
-    sendBid(bidData) {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(JSON.stringify({
-          type: 'PLACE_BID',
-          payload: bidData
-        }));
-      }
-    }
-  
-    updateBid(bidId, updateData) {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(JSON.stringify({
-          type: 'UPDATE_BID',
-          payload: { bidId, ...updateData }
-        }));
-      }
-    }
+      return () => this.subscribers.get(event)?.delete(callback);
   }
-  
-  // Create singleton instance
-  const websocketService = new WebSocketService();
-  export default websocketService;
+
+  subscribeToBidUpdates() {
+      if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({
+              type: 'SUBSCRIBE',
+              channel: 'bid_updates'
+          }));
+      }
+  }
+
+  subscribeToBroadcasts() {
+      if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({
+              type: 'SUBSCRIBE',
+              channel: 'broadcasts'
+          }));
+      }
+  }
+
+  notifySubscribers(event, data) {
+      const callbacks = this.subscribers.get(event);
+      callbacks?.forEach(callback => {
+          try {
+              callback(data);
+          } catch (error) {
+              console.error('Error in subscriber callback:', error);
+          }
+      });
+  }
+
+  disconnect() {
+      if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.close(1000, 'Client disconnecting');
+      }
+      this.ws = null;
+      this.subscribers.clear();
+  }
+}
+
+const websocketService = new WebSocketService();
+export default websocketService;

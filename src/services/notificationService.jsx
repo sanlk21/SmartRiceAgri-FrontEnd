@@ -1,5 +1,6 @@
 // src/services/notificationService.js
 
+// Remove VITE_API_URL since we're using relative paths with proxy
 const BASE_URL = '/api/notifications';
 
 export const NotificationType = {
@@ -18,22 +19,34 @@ export const NotificationType = {
     FERTILIZER_EXPIRED: 'FERTILIZER_EXPIRED'
 };
 
-export const Priority = {
-    MEDIUM: 'MEDIUM'
-};
-
 class NotificationService {
     async getMyNotifications() {
         try {
             const response = await fetch(`${BASE_URL}/my`, {
                 method: 'GET',
+                credentials: 'include',
                 headers: this.getHeaders()
             });
-            if (!response.ok) throw new Error('Failed to fetch notifications');
-            return await response.json();
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return []; // Return empty array if no notifications found
+                }
+                throw new Error('Failed to fetch notifications');
+            }
+
+            const text = await response.text(); // First get response as text
+            if (!text) return []; // Return empty array if response is empty
+
+            try {
+                return JSON.parse(text); // Then try to parse as JSON
+            } catch (e) {
+                console.error('Error parsing JSON:', text);
+                return [];
+            }
         } catch (error) {
             console.error('Error in getMyNotifications:', error);
-            throw error;
+            return []; // Return empty array on error
         }
     }
 
@@ -41,56 +54,38 @@ class NotificationService {
         try {
             const response = await fetch(`${BASE_URL}/${notificationId}/read`, {
                 method: 'PUT',
+                credentials: 'include',
                 headers: this.getHeaders()
             });
-            if (!response.ok) throw new Error('Failed to mark notification as read');
-            return await response.json();
+
+            if (!response.ok) {
+                throw new Error('Failed to mark notification as read');
+            }
+
+            const text = await response.text();
+            return text ? JSON.parse(text) : {};
         } catch (error) {
             console.error('Error in markAsRead:', error);
             throw error;
         }
     }
 
-    async createNotification(data) {
+    async markAllAsRead() {
         try {
-            const response = await fetch(BASE_URL, {
-                method: 'POST',
-                headers: this.getHeaders(),
-                body: JSON.stringify(data)
-            });
-            if (!response.ok) throw new Error('Failed to create notification');
-            return await response.json();
-        } catch (error) {
-            console.error('Error in createNotification:', error);
-            throw error;
-        }
-    }
-
-    async createBroadcast(data) {
-        try {
-            const response = await fetch(`${BASE_URL}/broadcast`, {
-                method: 'POST',
-                headers: this.getHeaders(),
-                body: JSON.stringify(data)
-            });
-            if (!response.ok) throw new Error('Failed to create broadcast');
-            return await response.json();
-        } catch (error) {
-            console.error('Error in createBroadcast:', error);
-            throw error;
-        }
-    }
-
-    async getAllBroadcasts() {
-        try {
-            const response = await fetch(`${BASE_URL}/broadcasts`, {
-                method: 'GET',
+            const response = await fetch(`${BASE_URL}/mark-all-read`, {
+                method: 'PUT',
+                credentials: 'include',
                 headers: this.getHeaders()
             });
-            if (!response.ok) throw new Error('Failed to fetch broadcasts');
-            return await response.json();
+
+            if (!response.ok) {
+                throw new Error('Failed to mark all notifications as read');
+            }
+
+            const text = await response.text();
+            return text ? JSON.parse(text) : {};
         } catch (error) {
-            console.error('Error in getAllBroadcasts:', error);
+            console.error('Error in markAllAsRead:', error);
             throw error;
         }
     }
@@ -99,10 +94,16 @@ class NotificationService {
         try {
             const response = await fetch(`${BASE_URL}/${notificationId}`, {
                 method: 'DELETE',
+                credentials: 'include',
                 headers: this.getHeaders()
             });
-            if (!response.ok) throw new Error('Failed to delete notification');
-            return await response.json();
+
+            if (!response.ok) {
+                throw new Error('Failed to delete notification');
+            }
+
+            const text = await response.text();
+            return text ? JSON.parse(text) : {};
         } catch (error) {
             console.error('Error in deleteNotification:', error);
             throw error;
@@ -113,7 +114,8 @@ class NotificationService {
         const token = localStorage.getItem('token');
         return {
             'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : ''
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
         };
     }
 }
