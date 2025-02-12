@@ -1,4 +1,3 @@
-// src/pages/auth/Register.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -127,22 +126,31 @@ const Register = () => {
           navigate('/');
       }
     } catch (err) {
-      // Handle registration errors
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div 
+      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative py-12 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: "url('/images/barley.jpg')"
+      }}
+    >
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/50"></div>
+      
+      {/* Content */}
+      <div className="max-w-md w-full space-y-8 relative z-10 bg-white/90 backdrop-blur-sm p-8 rounded-lg shadow-xl mx-4">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
             Create your account
           </h2>
         </div>
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-px">
+          <div className="rounded-md shadow-sm space-y-2">
             {/* Basic User Information */}
             <div>
               <label htmlFor="username" className="sr-only">Username</label>
@@ -151,7 +159,7 @@ const Register = () => {
                 name="username"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Username"
                 value={formData.username}
                 onChange={handleChange}
@@ -164,7 +172,7 @@ const Register = () => {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
@@ -177,7 +185,7 @@ const Register = () => {
                 name="confirmPassword"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
@@ -192,7 +200,7 @@ const Register = () => {
                 name="nic"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="NIC Number"
                 value={formData.nic}
                 onChange={handleChange}
@@ -205,7 +213,7 @@ const Register = () => {
                 name="fullName"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Full Name"
                 value={formData.fullName}
                 onChange={handleChange}
@@ -218,7 +226,7 @@ const Register = () => {
                 name="email"
                 type="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
@@ -231,7 +239,7 @@ const Register = () => {
                 name="phoneNumber"
                 type="tel"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Phone Number"
                 value={formData.phoneNumber}
                 onChange={handleChange}
@@ -244,7 +252,7 @@ const Register = () => {
                 name="address"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Address"
                 value={formData.address}
                 onChange={handleChange}
@@ -258,7 +266,7 @@ const Register = () => {
                 id="role"
                 name="role"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 value={formData.role}
                 onChange={handleChange}
               >
@@ -278,7 +286,7 @@ const Register = () => {
                     name="bankName"
                     type="text"
                     required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                     placeholder="Bank Name"
                     value={formData.bankName}
                     onChange={handleChange}
@@ -291,7 +299,7 @@ const Register = () => {
                     name="bankBranch"
                     type="text"
                     required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                     placeholder="Bank Branch"
                     value={formData.bankBranch}
                     onChange={handleChange}
@@ -304,7 +312,7 @@ const Register = () => {
                     name="accountNumber"
                     type="text"
                     required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                     placeholder="Account Number"
                     value={formData.accountNumber}
                     onChange={handleChange}
@@ -317,7 +325,7 @@ const Register = () => {
                     name="expectedCropAmount"
                     type="number"
                     required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                     placeholder="Expected Crop Amount (kg)"
                     value={formData.expectedCropAmount}
                     onChange={handleChange}
@@ -336,7 +344,7 @@ const Register = () => {
                     name="companyName"
                     type="text"
                     required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                     placeholder="Company Name"
                     value={formData.companyName}
                     onChange={handleChange}
@@ -349,7 +357,7 @@ const Register = () => {
                     name="businessRegNumber"
                     type="text"
                     required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                     placeholder="Business Registration Number"
                     value={formData.businessRegNumber}
                     onChange={handleChange}
@@ -362,7 +370,7 @@ const Register = () => {
                     name="storeLocation"
                     type="text"
                     required
-                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                    className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                     placeholder="Store Location"
                     value={formData.storeLocation}
                     onChange={handleChange}
@@ -374,21 +382,53 @@ const Register = () => {
 
           {/* Error Message */}
           {error && (
-            <div className="text-red-500 text-sm text-center">
+            <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">
               {error}
             </div>
           )}
 
+          {/* Submit Button */}
           <div>
             <button
               type="submit"
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {isLoading ? 'Registering...' : 'Register'}
+              {isLoading ? (
+                <>
+                  <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+                    {/* Loading spinner */}
+                    <svg 
+                      className="animate-spin h-5 w-5 text-white" 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      fill="none" 
+                      viewBox="0 0 24 24"
+                    >
+                      <circle 
+                        className="opacity-25" 
+                        cx="12" 
+                        cy="12" 
+                        r="10" 
+                        stroke="currentColor" 
+                        strokeWidth="4"
+                      />
+                      <path 
+                        className="opacity-75" 
+                        fill="currentColor" 
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  </span>
+                  Registering...
+                </>
+              ) : (
+                'Register'
+              )}
             </button>
           </div>
         </form>
+
+        {/* Sign In Link */}
         <div className="text-center">
           <p className="mt-2 text-sm text-gray-600">
             Already have an account?{' '}
