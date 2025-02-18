@@ -1,4 +1,3 @@
-// src/routes/notifications/AdminBroadcast.jsx
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -53,7 +52,8 @@ const AdminBroadcast = () => {
           <div className="space-y-2">
             <label>Title</label>
             <Input
-              {...register('title', { required: true })}
+              name="title"
+              required
               placeholder="Broadcast title"
             />
           </div>
@@ -61,7 +61,8 @@ const AdminBroadcast = () => {
           <div className="space-y-2">
             <label>Message</label>
             <Textarea
-              {...register('description', { required: true })}
+              name="description"
+              required
               placeholder="Enter your broadcast message"
               rows={4}
             />

@@ -1,21 +1,49 @@
-export const NotificationType = {
-    BID_PLACED: 'BID_PLACED',
-    BID_ACCEPTED: 'BID_ACCEPTED',
-    BID_REJECTED: 'BID_REJECTED',
-    BID_EXPIRED: 'BID_EXPIRED',
-    ORDER_CREATED: 'ORDER_CREATED',
-    ORDER_STATUS_CHANGE: 'ORDER_STATUS_CHANGE',
-    PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
-    PAYMENT_REMINDER: 'PAYMENT_REMINDER',
-    ADMIN_BROADCAST: 'ADMIN_BROADCAST',
-    FERTILIZER_ALLOCATED: 'FERTILIZER_ALLOCATED',
-    FERTILIZER_READY: 'FERTILIZER_READY',
-    FERTILIZER_COLLECTED: 'FERTILIZER_COLLECTED',
-    FERTILIZER_EXPIRED: 'FERTILIZER_EXPIRED'
-};
+import axios from '@/api/axios';
 
 class NotificationService {
+  async getMyNotifications() {
+    try {
+      const response = await axios.get('/api/notifications/my');
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to fetch notifications');
+    }
+  }
+
+  async markAsRead(notificationId) {
+    try {
+      const response = await axios.put(`/api/notifications/${notificationId}/read`);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to mark notification as read');
+    }
+  }
+
+  async markAllAsRead() {
+    try {
+      const response = await axios.put('/api/notifications/mark-all-read');
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to mark all notifications as read');
+    }
+  }
+
+  async deleteNotification(notificationId) {
+    try {
+      await axios.delete(`/api/notifications/${notificationId}`);
+    } catch (error) {
+      throw new Error('Failed to delete notification');
+    }
+  }
+
+  async createBroadcast(data) {
+    try {
+      const response = await axios.post('/api/notifications/broadcast', data);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to create broadcast');
+    }
+  }
 }
 
-// Export a singleton instance
 export const notificationService = new NotificationService();

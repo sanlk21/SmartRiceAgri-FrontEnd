@@ -1,11 +1,8 @@
-// src/context/NotificationContext.jsx
 import { useToast } from '@/components/ui/use-toast';
 import { notificationService } from '@/services/notificationService';
-import websocketService from '@/services/websocketService';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 
-// Create context with default values
 const NotificationContext = createContext({
   notifications: [],
   unreadCount: 0,
@@ -40,41 +37,13 @@ export function NotificationProvider({ children }) {
     }
   }, [user, toast]);
 
-  const handleNewNotification = useCallback((notification) => {
-    if (!notification) return;
-
-    setNotifications(prev => [notification, ...prev]);
-    setUnreadCount(prev => prev + 1);
-    
-    toast({
-      title: notification.title,
-      description: notification.description,
-      duration: 5000,
-    });
-  }, [toast]);
-
   useEffect(() => {
-    let interval;
-    let wsUnsubscribe;
-
     if (user) {
-      // Initial fetch
       fetchNotifications();
-
-      // Setup polling
-      interval = setInterval(fetchNotifications, 30000);
-
-      // Setup WebSocket
-      websocketService.connect();
-      wsUnsubscribe = websocketService.subscribe('notification', handleNewNotification);
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
     }
-
-    return () => {
-      if (interval) clearInterval(interval);
-      if (wsUnsubscribe) wsUnsubscribe();
-      websocketService.disconnect();
-    };
-  }, [user, fetchNotifications, handleNewNotification]);
+  }, [user, fetchNotifications]);
 
   const markAsRead = async (notificationId) => {
     if (!notificationId) return;
@@ -133,17 +102,15 @@ export function NotificationProvider({ children }) {
     }
   };
 
-  const value = {
-    notifications,
-    unreadCount,
-    fetchNotifications,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification
-  };
-
   return (
-    <NotificationContext.Provider value={value}>
+    <NotificationContext.Provider value={{
+      notifications,
+      unreadCount,
+      fetchNotifications,
+      markAsRead,
+      markAllAsRead,
+      deleteNotification
+    }}>
       {children}
     </NotificationContext.Provider>
   );
@@ -156,6 +123,3 @@ export function useNotifications() {
   }
   return context;
 }
-
-// Export the context for testing purposes
-export const NotificationContextTest = NotificationContext;
