@@ -109,9 +109,9 @@ const Weather = () => {
   const hasFullWeek = uniqueForecasts.length === 7;
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto p-4 space-y-6 bg-sky-300">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between bg-sky-600">
           <CardTitle>
             7-Day Weather Forecast {currentCity && `- ${currentCity}`}
           </CardTitle>
@@ -166,7 +166,7 @@ const Weather = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {uniqueForecasts.map((day, index) => (
                   <Card key={index} className="overflow-hidden">
-                    <CardHeader className="bg-gray-50 p-4">
+                    <CardHeader className="bg-sky-500 p-4">
                       <div className="text-lg font-semibold">
                         {new Date(day.predictionDate).toLocaleDateString('en-US', {
                           weekday: 'short',

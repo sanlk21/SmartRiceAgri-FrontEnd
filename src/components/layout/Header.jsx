@@ -15,7 +15,7 @@ const NotificationItem = ({ notification, onRead }) => (
   >
     <div className="flex justify-between items-start">
       <div className="flex-1">
-        <p className="font-medium text-sm text-gray-900">{notification.title}</p>
+        <p className="font-medium text-sm text-green-600">{notification.title}</p>
         <p className="text-sm text-gray-500 mt-1">{notification.description}</p>
         <p className="text-xs text-gray-400 mt-1">
           {formatDistanceToNow(new Date(notification.createdDate), { addSuffix: true })}
@@ -57,11 +57,11 @@ const Header = () => {
   const { unreadCount } = useNotifications();
 
   return (
-    <header className="bg-emerald-600 shadow-sm">
+    <header className="bg-gray-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-2xl font-bold text-green-500">
               {user?.role === 'FARMER' && 'Farmer Dashboard'}
               {user?.role === 'BUYER' && 'Buyer Dashboard'}
               {user?.role === 'ADMIN' && 'Admin Dashboard'}
@@ -72,7 +72,7 @@ const Header = () => {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
+                  <Bell className="h-5 w-5 text-sky-400" />
                   {unreadCount > 0 && (
                     <Badge 
                       variant="destructive" 
@@ -93,19 +93,20 @@ const Header = () => {
 
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <User className="h-8 w-8 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">
+                <User className="h-8 w-8 text-green-400" />
+                <span className="text-sm font-medium text-green-400">
                   {user?.fullName}
                 </span>
               </div>
               
               <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={logout}
-              >
-                <LogOut className="h-5 w-5" />
-              </Button>
+  variant="ghost" 
+  size="icon"
+  onClick={logout}
+  className="text-red-500 hover:text-red-700 hover:bg-red-100"
+>
+  <LogOut className="h-5 w-5" />
+</Button>
             </div>
           </div>
         </div>

@@ -153,7 +153,7 @@ const Sidebar = ({ onClose }) => {
         <div key={link.key} className="space-y-1">
           <button
             onClick={() => toggleMenu(link.key)}
-            className="w-full flex items-center px-2 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white rounded-md"
+            className="w-full flex items-center px-2 py-2 text-sm font-medium text-lime-300 hover:bg-lime-700 hover:text-white rounded-md"
           >
             <link.icon className="mr-3 h-6 w-6" />
             <span className="flex-1 text-left">{link.label}</span>
@@ -195,8 +195,8 @@ const Sidebar = ({ onClose }) => {
         className={({ isActive }) =>
           `flex items-center px-2 py-2 text-sm font-medium rounded-md ${
             isActive
-              ? 'bg-gray-900 text-white'
-              : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              ? 'bg-lime-900 text-white'
+              : 'text-gray-300 hover:bg-lime-700 hover:text-white'
           }`
         }
       >
@@ -213,7 +213,7 @@ const Sidebar = ({ onClose }) => {
   return (
     <div className="flex flex-col h-full w-64 bg-gray-800">
       <div className="flex items-center justify-between h-16 flex-shrink-0 px-4 bg-gray-900">
-        <h1 className="text-xl font-bold text-white">
+      <h1 className="text-xl font-bold italic text-green-500">
           Smart Agriculture
         </h1>
         {onClose && (
@@ -233,7 +233,7 @@ const Sidebar = ({ onClose }) => {
           {getLinks().map(renderNavItem)}
         </nav>
 
-        <div className="flex-shrink-0 bg-gray-700 p-4">
+        <div className="flex-shrink-0 bg-gray-900 p-4">
           <div className="flex flex-col space-y-3">
             <div className="flex items-center">
               <div className="ml-3">
@@ -247,7 +247,7 @@ const Sidebar = ({ onClose }) => {
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center px-2 py-2 text-sm font-medium text-gray-300 hover:bg-gray-600 hover:text-white rounded-md w-full"
+              className="flex items-center px-2 py-2 text-sm font-medium text-red-300 hover:bg-red-600 hover:text-white rounded-md w-full"
             >
               <LogOut className="mr-3 h-5 w-5" />
               Logout
