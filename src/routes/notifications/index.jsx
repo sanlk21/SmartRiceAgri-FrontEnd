@@ -6,6 +6,8 @@ import { Route, Routes } from 'react-router-dom';
 const NotificationList = lazy(() => import('./NotificationList'));
 const AdminBroadcast = lazy(() => import('./AdminBroadcast'));
 const NotificationSettings = lazy(() => import('./NotificationSettings'));
+const NotificationManagement = lazy(() => import('./NotificationManagement'));
+const NotificationReports = lazy(() => import('./NotificationReports'));
 
 const NotificationRoutes = () => {
   const { user } = useAuth();
@@ -46,22 +48,6 @@ const NotificationRoutes = () => {
         />
       </Routes>
     </Suspense>
-  );
-};
-
-const NotificationManagement = () => {
-  return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Notification Management</h2>
-    </div>
-  );
-};
-
-const NotificationReports = () => {
-  return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Notification Reports</h2>
-    </div>
   );
 };
 

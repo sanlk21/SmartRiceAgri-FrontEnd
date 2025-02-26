@@ -1,9 +1,33 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-//import { Switch } from '@/components/ui/switch';
-import React from 'react';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/components/ui/use-toast';
+import { useState } from 'react';
 
 const NotificationSettings = () => {
+  const { toast } = useToast();
+  const [settings, setSettings] = useState({
+    bidUpdates: true,
+    orderStatus: true,
+    paymentUpdates: true,
+    systemAnnouncements: true
+  });
+
+  const handleSettingChange = (setting) => {
+    setSettings(prev => {
+      const newSettings = { ...prev, [setting]: !prev[setting] };
+      
+      // In a real application, you would save these settings to the database
+      // For now, we'll just show a toast notification
+      toast({
+        title: "Settings Updated",
+        description: `${setting} notifications ${newSettings[setting] ? 'enabled' : 'disabled'}`
+      });
+      
+      return newSettings;
+    });
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -17,7 +41,10 @@ const NotificationSettings = () => {
               Receive notifications about bids on your listings
             </p>
           </div>
-          <Switch defaultChecked={true} />
+          <Switch 
+            checked={settings.bidUpdates} 
+            onCheckedChange={() => handleSettingChange('bidUpdates')}
+          />
         </div>
 
         <div className="flex items-center justify-between">
@@ -27,7 +54,10 @@ const NotificationSettings = () => {
               Get notified about changes to your orders
             </p>
           </div>
-          <Switch defaultChecked={true} />
+          <Switch 
+            checked={settings.orderStatus}
+            onCheckedChange={() => handleSettingChange('orderStatus')}
+          />
         </div>
 
         <div className="flex items-center justify-between">
@@ -37,7 +67,10 @@ const NotificationSettings = () => {
               Receive payment confirmations and reminders
             </p>
           </div>
-          <Switch defaultChecked={true} />
+          <Switch 
+            checked={settings.paymentUpdates}
+            onCheckedChange={() => handleSettingChange('paymentUpdates')}
+          />
         </div>
 
         <div className="flex items-center justify-between">
@@ -47,7 +80,10 @@ const NotificationSettings = () => {
               Important updates and announcements about the platform
             </p>
           </div>
-          <Switch defaultChecked={true} />
+          <Switch 
+            checked={settings.systemAnnouncements}
+            onCheckedChange={() => handleSettingChange('systemAnnouncements')}
+          />
         </div>
       </CardContent>
     </Card>

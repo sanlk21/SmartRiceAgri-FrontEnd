@@ -49,6 +49,11 @@ const NotificationList = () => {
                       <p className="text-xs text-muted-foreground mt-2">
                         {formatDistanceToNow(new Date(notification.createdDate), { addSuffix: true })}
                       </p>
+                      {notification.type && (
+                        <span className="inline-block mt-1 text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                          {notification.type.replace(/_/g, ' ')}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 ml-4">
                       {!notification.read && (
