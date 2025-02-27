@@ -1,3 +1,4 @@
+// src/services/notificationService.jsx
 import axios from '@/api/axios';
 
 class NotificationService {
@@ -7,10 +8,13 @@ class NotificationService {
    */
   async getMyNotifications() {
     try {
-      const response = await axios.get('/api/notifications/my');
+      const response = await axios.get('/notifications/my');
       return response.data;
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      if (error.response?.status === 401) {
+        throw new Error('Please log in to view notifications');
+      }
       throw new Error('Failed to fetch notifications');
     }
   }
@@ -22,24 +26,30 @@ class NotificationService {
    */
   async markAsRead(notificationId) {
     try {
-      const response = await axios.put(`/api/notifications/${notificationId}/read`);
+      const response = await axios.put(`/notifications/${notificationId}/read`);
       return response.data;
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      if (error.response?.status === 401) {
+        throw new Error('Please log in to mark notifications');
+      }
       throw new Error('Failed to mark notification as read');
     }
   }
 
   /**
-   * Mark all notifications as read for current user
+   * Mark all notifications as read for the current user
    * @returns {Promise<Object>} Response data
    */
   async markAllAsRead() {
     try {
-      const response = await axios.put('/api/notifications/mark-all-read');
+      const response = await axios.put('/notifications/mark-all-read');
       return response.data;
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+      if (error.response?.status === 401) {
+        throw new Error('Please log in to mark notifications');
+      }
       throw new Error('Failed to mark all notifications as read');
     }
   }
@@ -51,9 +61,12 @@ class NotificationService {
    */
   async deleteNotification(notificationId) {
     try {
-      await axios.delete(`/api/notifications/${notificationId}`);
+      await axios.delete(`/notifications/${notificationId}`);
     } catch (error) {
       console.error('Error deleting notification:', error);
+      if (error.response?.status === 401) {
+        throw new Error('Please log in to delete notifications');
+      }
       throw new Error('Failed to delete notification');
     }
   }
@@ -65,10 +78,13 @@ class NotificationService {
    */
   async createBroadcast(data) {
     try {
-      const response = await axios.post('/api/notifications/broadcast', data);
+      const response = await axios.post('/notifications/broadcast', data);
       return response.data;
     } catch (error) {
       console.error('Error creating broadcast:', error);
+      if (error.response?.status === 401) {
+        throw new Error('Please log in to create broadcasts');
+      }
       throw new Error('Failed to create broadcast: ' + (error.response?.data?.error || error.message));
     }
   }
@@ -84,10 +100,13 @@ class NotificationService {
         throw new Error('Notification title and description are required');
       }
 
-      const response = await axios.post('/api/notifications', data);
+      const response = await axios.post('/notifications', data);
       return response.data;
     } catch (error) {
       console.error('Error creating notification:', error);
+      if (error.response?.status === 401) {
+        throw new Error('Please log in to create notifications');
+      }
       throw new Error('Failed to create notification: ' + (error.response?.data?.error || error.message));
     }
   }
@@ -98,10 +117,13 @@ class NotificationService {
    */
   async getAllBroadcasts() {
     try {
-      const response = await axios.get('/api/notifications/broadcasts');
+      const response = await axios.get('/notifications/broadcasts');
       return response.data;
     } catch (error) {
       console.error('Error fetching broadcasts:', error);
+      if (error.response?.status === 401) {
+        throw new Error('Please log in to view broadcasts');
+      }
       throw new Error('Failed to fetch broadcasts');
     }
   }
