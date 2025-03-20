@@ -65,7 +65,6 @@ const Sidebar = ({ onClose }) => {
       label: 'Fertilizer Quota',
       children: [
         { to: '/farmer/fertilizer', label: 'Overview' },
-        { to: '/farmer/fertilizer/quota', label: 'Quota Details' },
       ],
     },
     {
@@ -75,7 +74,6 @@ const Sidebar = ({ onClose }) => {
       children: [
         { to: '/farmer/bids/create', label: 'Create Bid' },
         { to: '/farmer/bids/list', label: 'Bid List' },
-        { to: '/farmer/bids/details', label: 'Bid Details' },
       ],
     },
     { to: '/farmer/orders', icon: FileText, label: 'Orders' },
