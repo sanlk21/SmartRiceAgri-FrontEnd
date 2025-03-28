@@ -12,6 +12,9 @@ const Login = () => {
   // Error and loading states
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Language state
+  const [language, setLanguage] = useState('en'); // 'en' for English, 'si' for Sinhala
 
   // Hooks
   const { login } = useAuth();
@@ -64,6 +67,22 @@ const Login = () => {
   // Scroll to About Us section
   const scrollToAboutUs = () => {
     aboutUsRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Language content
+  const content = {
+    en: {
+      aboutUsTitle: "About Us",
+      aboutUsText1: "Welcome to SmartAgri, Sri Lanka’s pioneering Smart Rice Agriculture System, designed to transform the nation’s rice production landscape through cutting-edge technology and sustainable practices. Rooted in the heart of Sri Lanka’s agricultural heritage—once celebrated as the 'Granary of the East'—we empower over 1.8 million rice farming families by addressing the critical challenges of unpredictable weather, inefficient resource management, and market disparities.",
+      aboutUsText2: "Our mission is to bridge tradition with innovation, creating a resilient and efficient agricultural ecosystem that ensures food security and enhances livelihoods. Leveraging advanced AI-driven weather prediction with over 90% accuracy, blockchain-based resource tracking, and a transparent digital marketplace, SmartAgri delivers actionable insights and streamlined operations for farmers, buyers, and administrators alike. From the fertile plains of Anuradhapura to the terraced fields of Kandy, our platform optimizes rice production across Sri Lanka’s diverse agro-ecological zones, reducing crop losses, minimizing resource wastage by an estimated 90%, and fostering fair trade.",
+      aboutUsText3: "Developed through a collaborative effort with farmers, agricultural experts, and policymakers, SmartAgri integrates a robust technology stack—Spring Boot, React.js, and Python-powered machine learning—to provide real-time weather forecasts, secure fertilizer allocation, and direct farmer-to-buyer connections. Recognized for its reliability (93% testing pass rate) and user-friendly design, our system is more than a tool—it’s a movement towar modernizing Sri Lanka’s agricultural backbone. At SmartAgri, we are committed to sustainability, transparency, and empowerment. Whether you’re a farmer planning your next harvest, a buyer sourcing quality rice, or an administrator shaping agricultural policy, we’re here to support you every step of the way. Together, let’s cultivate a future where technology nurtures tradition, ensuring prosperity for generations to come."
+    },
+    si: {
+      aboutUsTitle: "අප ගැන",
+      aboutUsText1: "ශ්‍රී ලංකාවේ ප්‍රමුඛ සහල් කෘෂිකර්මාන්ත පද්ධතිය වන SmartAgri වෙත සාදරයෙන් පිළිගනිමු. මෙය උසස් තාක්ෂණය සහ තිරසාර පිළිවෙත් ඔස්සේ ජාතියේ සහල් නිෂ්පාදන භූමිය පරිවර්තනය කිරීමට නිර්මාණය කර ඇත. ශ්‍රී ලංකාවේ කෘෂිකාර්මික උරුමයේ හදවතේ මුල් බැසගත්—එක් කලෙක 'නැගෙනහිර ධාන්‍යාගාරය' ලෙස ප්‍රකට වූ—අපි අනපේක්ෂිත කාලගුණය, අකාර්යක්ෂම සම්පත් කළමනාකරණය සහ වෙළඳපල විෂමතා වැනි තීරණාත්මක අභියෝගවලට මුහුණ දීමෙන් සහල් ගොවි පවුල් මිලියන 1.8කට අධික සහල් ගොවි පවුල්වලට බලය ලබා දෙන්නෙමු.",
+      aboutUsText2: "අපගේ මෙහෙවර වන්නේ සම්ප්‍රදාය සමඟ නවෝත්පාදනය යා කරමින්, ආහාර සුරක්ෂිතතාව සහතික කරන සහ ජීවනෝපායන් වැඩිදියුණු කරන ඔරොත්තු දෙන සහ කාර්යක්ෂම කෘෂිකාර්මික පරිසර පද්ධතියක් නිර්මාණය කිරීමයි. 90%කට වඩා වැඩි නිරවද්‍යතාවයකින් යුත් උසස් AI-ධාවිත කාලගුණ පුරෝකථනය, බ්ලොක්චේන් මත පදනම් වූ සම්පත් ලුහුබැඳීම, සහ විනිවිද පෙනෙන ඩිජිටල් වෙළඳපොළක් උපයෝගී කරගනිමින්, SmartAgri ගොවීන්ට, ගැනුම්කරුවන්ට සහ පරිපාලකයින්ට ක්‍රියාකාරී තීක්ෂ්ණ බුද්ධිය සහ පහසු කළමනාකරණය ලබා දෙයි. අනුරාධපුරයේ සාරවත් තැනිතලාවල සිට කන්දේ ඉණිමං කෙත්වතු දක්වා, අපගේ වේදිකාව ශ්‍රී ලංකාවේ විවිධ කෘෂි-පාරිසරික කලාප හරහා සහල් නිෂ්පාදනය ප්‍රශස්ත කරයි, බෝග හානි අඩු කරයි, සම්පත් නාස්තිය 90%කින් අවම කරයි, සහ සාධාරණ වෙළඳාම පෝෂණය කරයි.",
+      aboutUsText3: "ගොවීන්, කෘෂිකාර්මික විශේෂඥයින්, සහ ප්‍රතිපත්ති සම්පාදකයින් සමඟ එක්ව සංවර්ධනය කරන ලද SmartAgri, Spring Boot, React.js, සහ Python-ධාවිත යන්ත්‍ර ඉගෙනීම ඒකාබද්ධ කරමින් තත්‍ය කාලීන කාලගුණ පුරෝකථන, ආරක්ෂිත පොහොර බෙදාහැරීම, සහ ගොවි-ගැනුම්කරු සෘජු සම්බන්ධතා සපයයි. එහි විශ්වසනීයත්වය (93% පරීක්ෂණ සමත් වීමේ අනුපාතය) සහ පරිශීලක-හිතකාමී නිර්මාණය සඳහා පිළිගැනීමට ලක්ව ඇති අපගේ පද්ධතිය උපකරණයකට වඩා වැඩි ය—එය ශ්‍රී ලංකාවේ කෘෂිකාර්මික කොඳු නාරටිය නවීකරණය කිරීමේ ව්‍යාපාරයකි. SmartAgri හිදී, අපි තිරසාරභාවය, විනිවිදභාවය, සහ බලගැන්වීමට කැපවී සිටිමු. ඔබ ඊළඟ අස්වැන්න සැලසුම් කරන ගොවියෙක්, ගුණාත්මක සහල් සොයන ගැනුම්කරුවෙක්, හෝ කෘෂිකාර්මික ප්‍රතිපත්ති හැඩගස්වන පරිපාලකයෙක් වුවත්, අපි ඔබ සමඟ සෑම පියවරකදීම සිටින්නෙමු. එක්ව, තාක්ෂණය සම්ප්‍රදාය පෝෂණය කරන, ඉදිරි පරම්පරාවන්ට සෞභාග්‍ය සහතික කරන අනාගතයක් වගා කරමු."
+    }
   };
 
   return (
@@ -193,17 +212,27 @@ const Login = () => {
 
       {/* About Us Section */}
       <div ref={aboutUsRef} className="max-w-5xl mx-auto px-6 py-16 bg-white rounded-lg shadow-lg">
-  <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center drop-shadow-sm">About Us</h2>
-  <p className="text-gray-700 text-lg leading-relaxed text-center">
-    Welcome to <span className="font-semibold text-green-700">SmartAgri</span>, Sri Lanka’s pioneering Smart Rice Agriculture System, designed to transform the nation’s rice production landscape through cutting-edge technology and sustainable practices. Rooted in the heart of Sri Lanka’s agricultural heritage—once celebrated as the "Granary of the East"—we empower over 1.8 million rice farming families by addressing the critical challenges of unpredictable weather, inefficient resource management, and market disparities.
-  </p>
-  <p className="text-gray-700 text-lg leading-relaxed text-center mt-4">
-    Our mission is to bridge tradition with innovation, creating a resilient and efficient agricultural ecosystem that ensures food security and enhances livelihoods. Leveraging advanced AI-driven weather prediction with over 90% accuracy, blockchain-based resource tracking, and a transparent digital marketplace, SmartAgri delivers actionable insights and streamlined operations for farmers, buyers, and administrators alike. From the fertile plains of Anuradhapura to the terraced fields of Kandy, our platform optimizes rice production across Sri Lanka’s diverse agro-ecological zones, reducing crop losses, minimizing resource wastage by an estimated 90%, and fostering fair trade.
-  </p>
-  <p className="text-gray-700 text-lg leading-relaxed text-center mt-4">
-    Developed through a collaborative effort with farmers, agricultural experts, and policymakers, SmartAgri integrates a robust technology stack—Spring Boot, React.js, and Python-powered machine learning—to provide real-time weather forecasts, secure fertilizer allocation, and direct farmer-to-buyer connections. Recognized for its reliability (93% testing pass rate) and user-friendly design, our system is more than a tool—it’s a movement toward modernizing Sri Lanka’s agricultural backbone. At SmartAgri, we are committed to sustainability, transparency, and empowerment. Whether you’re a farmer planning your next harvest, a buyer sourcing quality rice, or an administrator shaping agricultural policy, we’re here to support you every step of the way. Together, let’s cultivate a future where technology nurtures tradition, ensuring prosperity for generations to come.
-  </p>
-</div>
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setLanguage(language === 'en' ? 'si' : 'en')}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            {language === 'en' ? 'සිංහල' : 'English'}
+          </button>
+        </div>
+        <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center drop-shadow-sm">
+          {content[language].aboutUsTitle}
+        </h2>
+        <p className="text-gray-700 text-lg leading-relaxed text-center">
+          {content[language].aboutUsText1}
+        </p>
+        <p className="text-gray-700 text-lg leading-relaxed text-center mt-4">
+          {content[language].aboutUsText2}
+        </p>
+        <p className="text-gray-700 text-lg leading-relaxed text-center mt-4">
+          {content[language].aboutUsText3}
+        </p>
+      </div>
 
       {/* Footer */}
       <footer className="bg-green-800 text-white py-8">
@@ -235,7 +264,7 @@ const Login = () => {
         
         <div className="mt-8 pt-8 border-t border-green-700 text-center">
           <p className="text-sm">
-            &copy; {new Date().getFullYear()} SmartAgri. All rights reserved.
+            © {new Date().getFullYear()} SmartAgri. All rights reserved.
           </p>
           <p className="text-xs mt-2">
             Designed with 🌾 by the SmartAgri Team
