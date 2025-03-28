@@ -59,21 +59,18 @@ const Weather = () => {
   const getUniqueForecastsByDate = (forecasts) => {
     if (!forecasts) return [];
     
-    // Get today's date at midnight for comparison
     const startDate = new Date();
     startDate.setHours(0, 0, 0, 0);
     
     const sevenDaysFromNow = new Date(startDate);
     sevenDaysFromNow.setDate(startDate.getDate() + 6);
     
-    // Filter forecasts within the 7-day window
     const validForecasts = forecasts.filter(forecast => {
       const forecastDate = new Date(forecast.predictionDate);
       forecastDate.setHours(0, 0, 0, 0);
       return forecastDate >= startDate && forecastDate <= sevenDaysFromNow;
     });
 
-    // Group by date and take the first forecast for each day
     const uniqueForecasts = {};
     validForecasts.forEach(forecast => {
       const date = new Date(forecast.predictionDate).toDateString();
@@ -82,7 +79,6 @@ const Weather = () => {
       }
     });
     
-    // Convert to array and sort by date
     return Object.values(uniqueForecasts)
       .sort((a, b) => new Date(a.predictionDate) - new Date(b.predictionDate));
   };
@@ -109,45 +105,49 @@ const Weather = () => {
   const hasFullWeek = uniqueForecasts.length === 7;
 
   return (
-    <div className="container mx-auto p-4 space-y-6 bg-sky-300">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between bg-sky-600">
-          <CardTitle>
+    <div className="container mx-auto p-4 space-y-6">
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between bg-gradient-to-r from-blue-600 to-blue-800 p-6">
+          <CardTitle className="text-white text-xl md:text-2xl mb-4 md:mb-0">
             7-Day Weather Forecast {currentCity && `- ${currentCity}`}
           </CardTitle>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-4 items-center">
             <Select
               value={selectedLocation?.toString()}
               onValueChange={setSelectedLocation}
             >
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[220px] bg-white/90 hover:bg-white">
                 <SelectValue placeholder="Select location">
                   {currentCity || "Select location"}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[60vh] overflow-y-auto">
                 {locationData.map((location) => (
-                  <SelectItem key={location.id} value={location.id.toString()}>
+                  <SelectItem 
+                    key={location.id} 
+                    value={location.id.toString()}
+                    className="hover:bg-blue-50"
+                  >
                     {location.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {loading && (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
+              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white" />
             )}
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           {error ? (
-            <Alert variant="destructive" className="mb-4">
-              <AlertTriangle className="h-4 w-4" />
+            <Alert variant="destructive" className="mb-6">
+              <AlertTriangle className="h-5 w-5" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : !uniqueForecasts || uniqueForecasts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 space-y-4">
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
+            <div className="flex flex-col items-center justify-center p-8 space-y-6">
+              <Alert className="w-full max-w-md">
+                <AlertTriangle className="h-5 w-5" />
                 <AlertDescription>
                   No weather forecast data available for {currentCity}.
                 </AlertDescription>
@@ -155,7 +155,7 @@ const Weather = () => {
               {!loading && (
                 <button
                   onClick={refreshWeather}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-md"
                 >
                   Retry Loading
                 </button>
@@ -163,11 +163,11 @@ const Weather = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-6">
                 {uniqueForecasts.map((day, index) => (
-                  <Card key={index} className="overflow-hidden">
-                    <CardHeader className="bg-sky-500 p-4">
-                      <div className="text-lg font-semibold">
+                  <Card key={index} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+                    <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 p-4">
+                      <div className="text-lg font-semibold text-white">
                         {new Date(day.predictionDate).toLocaleDateString('en-US', {
                           weekday: 'short',
                           month: 'short',
@@ -175,23 +175,29 @@ const Weather = () => {
                         })}
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4">
+                    <CardContent className="p-4 bg-white">
                       <div className="flex justify-between items-center mb-4">
                         {getWeatherIcon(day.weatherType)}
-                        <div className="text-2xl font-bold">{day.temperature.toFixed(1)}°C</div>
+                        <div className="text-3xl font-bold text-gray-800">
+                          {day.temperature.toFixed(1)}°C
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <CloudRain className="h-4 w-4 text-blue-500" />
-                          <span>Rain: {(day.rainfallProbability * 100).toFixed(0)}%</span>
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <CloudRain className="h-5 w-5 text-blue-500" />
+                          <span className="text-gray-700">
+                            Rain: {(day.rainfallProbability * 100).toFixed(0)}%
+                          </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Wind className="h-4 w-4 text-gray-500" />
-                          <span>Wind: {day.windSpeed.toFixed(1)} km/h</span>
+                        <div className="flex items-center gap-3">
+                          <Wind className="h-5 w-5 text-gray-500" />
+                          <span className="text-gray-700">
+                            Wind: {day.windSpeed.toFixed(1)} km/h
+                          </span>
                         </div>
-                        <div className="mt-2 pt-2 border-t">
-                          <span className="text-sm font-medium text-gray-600">
-                            {day.weatherType.replace('_', ' ')}
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <span className="text-sm font-medium text-gray-600 capitalize">
+                            {day.weatherType.toLowerCase().replace('_', ' ')}
                           </span>
                         </div>
                       </div>
@@ -200,8 +206,8 @@ const Weather = () => {
                 ))}
               </div>
               {!hasFullWeek && !loading && (
-                <Alert className="mt-4">
-                  <AlertTriangle className="h-4 w-4" />
+                <Alert className="mt-6">
+                  <AlertTriangle className="h-5 w-5" />
                   <AlertDescription>
                     Some forecast data is missing. Please try refreshing.
                   </AlertDescription>

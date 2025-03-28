@@ -6,14 +6,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { notificationService } from "@/services/notificationService";
 import {
-    AlertCircle,
-    Bell,
-    Check,
-    Loader2,
-    Mail,
-    RefreshCw,
-    Search,
-    Trash
+  AlertCircle,
+  Bell,
+  Check,
+  Loader2,
+  Mail,
+  RefreshCw,
+  Search,
+  Trash
 } from "lucide-react";
 import { useEffect, useState } from "react";
 

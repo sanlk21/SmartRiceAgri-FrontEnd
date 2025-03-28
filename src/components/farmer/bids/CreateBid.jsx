@@ -18,16 +18,16 @@ import { useNavigate } from 'react-router-dom';
 const RiceVarieties = [
   { id: 'SAMBA', name: 'සම්බා (Samba)' },
   { id: 'KIRI_SAMBA', name: 'කිරි සම්බා (Kiri Samba)' },
-  { id: 'NADU', name: 'නාදු (Nadu)' },
+  { id: 'NADU', name: 'නාඩු (Nadu)' },
   { id: 'KEKULU', name: 'කැකුළු (Kekulu)' },
   { id: 'RED_SAMBA', name: 'රතු සම්බා (Red Samba)' },
-  { id: 'RED_NADU', name: 'රතු නාදු (Red Nadu)' },
-  { id: 'SUWANDEL', name: 'සුවන්දෙල් (Suwandel)' },
+  { id: 'RED_NADU', name: 'රතු නාඩු (Red Nadu)' },
+  { id: 'SUWANDEL', name: 'සුවදැල් (Suwandel)' },
   { id: 'KALU_HEENATI', name: 'කලු හීනටි (Kalu Heenati)' },
   { id: 'PACHCHAPERUMAL', name: 'පච්චපෙරුමාල් (Pachchaperumal)' },
   { id: 'MADATHAWALU', name: 'මඩතාවලු (Madathawalu)' },
   { id: 'KURULUTHUDA', name: 'කුරුළුතුඩ (Kuruluthuda)' },
-  { id: 'RATH_SUWANDEL', name: 'රත් සුවන්දෙල් (Rath Suwandel)' },
+  { id: 'RATH_SUWANDEL', name: 'රත් සුවදැල් (Rath Suwandel)' },
   { id: 'HETADA_WEE', name: 'හේටද වී (Hetada Wee)' },
   { id: 'GONABARU', name: 'ගොනබරු (Gonabaru)' },
   { id: 'MURUNGAKAYAN', name: 'මුරුංගකයාන් (Murungakayan)' }
@@ -217,17 +217,22 @@ const CreateBid = () => {
               value={formData.riceVariety}
               onValueChange={(value) => setFormData({ ...formData, riceVariety: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="min-w-[250px]">
                 <SelectValue placeholder="Select rice variety" />
               </SelectTrigger>
-              <SelectContent className="h-[200px]">
+              <SelectContent className="bg-white max-h-[400px] overflow-y-auto">
                 {RiceVarieties.map((variety) => (
                   <SelectItem 
                     key={variety.id} 
                     value={variety.id}
-                    className="py-2"
+                    className="py-2 hover:bg-gray-100"
                   >
-                    {variety.name}
+                    <div className="flex flex-col">
+                      <span className="font-medium">{variety.name.split(' (')[0]}</span>
+                      <span className="text-sm text-gray-500">
+                        {variety.name.match(/\(([^)]+)\)/)?.[1]}
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
